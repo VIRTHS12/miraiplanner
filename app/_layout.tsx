@@ -19,7 +19,7 @@ export const unstable_settings = {
 };
 
 // 🔥 FIX UTAMA ERROR 1: Inject font MaterialCommunityIcons lewat CDN untuk platform Web
-if (Platform.OS === 'web') {
+if (Platform.OS === 'web' && typeof window !== 'undefined') {
   const iconFontStyles = `
     @font-face {
       src: url('https://cdnjs.cloudflare.com/ajax/libs/javascript-javascripticons/1.0.0/fonts/materialdesignicons-webfont.woff2') format('woff2');
@@ -27,14 +27,15 @@ if (Platform.OS === 'web') {
     }
   `;
 
-  // Bikin elemen style lalu selipin ke <head> browser
   const style = document.createElement('style');
   style.type = 'text/css';
+
   if (style.styleSheet) {
     style.styleSheet.cssText = iconFontStyles;
   } else {
     style.appendChild(document.createTextNode(iconFontStyles));
   }
+
   document.head.appendChild(style);
 }
 
