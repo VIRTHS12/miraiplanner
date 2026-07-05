@@ -8,6 +8,8 @@ import { Platform } from "react-native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
+import { useFonts } from "expo-font";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
@@ -17,6 +19,11 @@ export const unstable_settings = {
 
 export default function RootLayout() {
     const colorScheme = useColorScheme();
+    const [loaded] = useFonts({
+        ...MaterialCommunityIcons.font,
+    });
+
+    if (!loaded) return null;
 
     useEffect(() => {
         if (Platform.OS === "web") {
@@ -45,11 +52,11 @@ export default function RootLayout() {
                 {/* Menyembunyikan header bawaan secara global & spesifik */}
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 <Stack.Screen name="index" options={{ headerShown: false }} />
-                
+
                 {/* 🔥 FIX UTAMA: Daftarkan rute login & chatscreen agar tidak memunculkan bar hitam */}
                 <Stack.Screen name="login" options={{ headerShown: false }} />
                 <Stack.Screen name="chatscreen" options={{ headerShown: false }} />
-                
+
                 <Stack.Screen
                     name="modal"
                     options={{ presentation: "modal", title: "Modal" }}
