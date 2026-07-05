@@ -19,29 +19,32 @@ export const unstable_settings = {
 };
 
 // 🔥 FIX UTAMA ERROR 1: Inject font MaterialCommunityIcons lewat CDN untuk platform Web
-if (Platform.OS === 'web' && typeof window !== 'undefined') {
-  const iconFontStyles = `
-    @font-face {
-      src: url('https://cdnjs.cloudflare.com/ajax/libs/javascript-javascripticons/1.0.0/fonts/materialdesignicons-webfont.woff2') format('woff2');
-      font-family: 'material-community';
+if (Platform.OS === 'web' && typeof document !== 'undefined') {
+    const iconFontStyles = `
+        @font-face {
+            src: url('https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/fonts/materialdesignicons-webfont.woff2') format('woff2');
+            font-family: 'material-community';
+            font-weight: normal;
+            font-style: normal;
+        }
+    `;
+
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    
+    if ((style as any).styleSheet) {
+        (style as any).styleSheet.cssText = iconFontStyles;
+    } else {
+        style.appendChild(document.createTextNode(iconFontStyles));
     }
-  `;
-
-  const style = document.createElement('style');
-  style.type = 'text/css';
-
-  if (style.styleSheet) {
-    style.styleSheet.cssText = iconFontStyles;
-  } else {
-    style.appendChild(document.createTextNode(iconFontStyles));
-  }
-
-  document.head.appendChild(style);
+    
+    if (document.head) {
+        document.head.appendChild(style);
+    }
 }
-
 export default function RootLayout() {
     const colorScheme = useColorScheme();
-    
+
     // Load font lokal (tetap jalan di mobile app)
     const [loaded] = useFonts({
         ...MaterialCommunityIcons.font,
@@ -57,7 +60,7 @@ export default function RootLayout() {
             const url = new URL(window.location.href);
             if (url.searchParams.has("token")) {
                 url.searchParams.delete("token");
-                url.searchParams.delete("user"); 
+                url.searchParams.delete("user");
 
                 window.history.replaceState(
                     {},
@@ -76,9 +79,8 @@ export default function RootLayout() {
             <Stack>
                 {/* Menyembunyikan header bawaan secara global & spesifik */}
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                
-                {/* 🔥 REVISI ERROR 2: Karena lu gak punya file index.tsx di root (adanya cuma chatscreen, login, modal, tabs), HAPUS rute index di bawah ini agar routing Expo tidak bingung mencari file hantu */}
-                {/* <Stack.Screen name="index" options={{ headerShown: false }} /> */}
+
+                <Stack.Screen name="index" options={{ headerShown: false }} />
 
                 {/* Daftarkan rute login & chatscreen agar tidak memunculkan bar hitam */}
                 <Stack.Screen name="login" options={{ headerShown: false }} />

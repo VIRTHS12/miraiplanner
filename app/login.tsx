@@ -9,6 +9,7 @@ import {
     ImageBackground,
     ActivityIndicator,
     Platform,
+    useWindowDimensions,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -16,22 +17,51 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { API_URL } from "../constants/Config";
 
-// 📱 Import WebView secara dinamis agar tidak merusak build platform Web
 let WebView: any = null;
 if (Platform.OS !== "web") {
     WebView = require("react-native-webview").WebView;
 }
 
 export default function LoginScreen() {
-    const [loading, setLoading] = useState(false);
-    const [showWebView, setShowWebView] = useState(false);
-
     const params = useLocalSearchParams();
 
-    // 🔄 EFFECT 1: Tangkap token hasil redirect URL param (Khusus Web Browser)
+    // 🔥 TRIK MAUT: Bersihkan URL secara sinkronous seketika sebelum state/hook apa pun dieksekusi
+    // Ini memotong visual browser sebelum sempat menampilkan URL kotor ke user
+    if (Platform.OS === "web" && typeof window !== "undefined") {
+        try {
+            const url = new URL(window.location.href);
+            if (url.searchParams.has("token")) {
+                const backupToken = url.searchParams.get("token");
+                const backupUser = url.searchParams.get("user");
+
+                // Bersihkan query string
+                url.searchParams.delete("token");
+                url.searchParams.delete("user");
+
+                // Suntikkan langsung ke history address bar browser
+                window.history.replaceState({}, document.title, url.pathname + url.search);
+
+                // Kembalikan ke objek params internal agar hook storage di bawah tetap mendeteksi datanya
+                if (!params.token && backupToken) {
+                    params.token = backupToken;
+                    if (backupUser) params.user = backupUser;
+                }
+            }
+        } catch (e) {
+            console.error("Gagal memotong URL kotor:", e);
+        }
+    }
+
+    // 🔒 DEKLARASI HOOK UTAMA (Wajib di level teratas komponen)
+    const { width, height } = useWindowDimensions();
+    const [loading, setLoading] = useState(!!params.token);
+    const [showWebView, setShowWebView] = useState(false);
+
+    // 🔄 EFFECT 1: Amankan penyimpanan sesi data user ke local storage & Lempar ke beranda
     useEffect(() => {
         const handleToken = async () => {
             if (params.token) {
+                setLoading(true);
                 const token = params.token as string;
                 const user = params.user ? JSON.parse(params.user as string) : null;
 
@@ -40,10 +70,10 @@ export default function LoginScreen() {
                     if (user) localStorage.setItem("userData", JSON.stringify(user));
                 } else {
                     await AsyncStorage.setItem("user_token", token);
-                    if (user)
-                        await AsyncStorage.setItem("userData", JSON.stringify(user));
+                    if (user) await AsyncStorage.setItem("userData", JSON.stringify(user));
                 }
 
+                // Redirect aman, URL sudah steril
                 router.replace("/");
             }
         };
@@ -56,21 +86,21 @@ export default function LoginScreen() {
         setLoading(true);
 
         if (Platform.OS === "web") {
-            const returnTo = window.location.origin;
-            // 🌐 Di Web: Langsung ganti href jendela browser aktif
-            window.location.href = `${API_URL.LOGIN_GOOGLE}?return_to=${encodeURIComponent(returnTo)}`;
+            if (typeof window !== "undefined") {
+                const returnTo = `${window.location.origin}/login`;
+                window.location.href = `${API_URL.LOGIN_GOOGLE}?return_to=${encodeURIComponent(returnTo)}`;
+            }
         } else {
-            // 📱 Di HP: Aktifkan layar WebView internal, matikan loading spinner button
-            setLoading(false);
             setShowWebView(true);
         }
     };
 
-    // 🔄 EFFECT 2: Tangkap data JSON dari echo PHP backend (Khusus HP Mobile)
+    // 🔄 EFFECT 2: Jalur Sukses Login Khusus HP Mobile via WebView
     const onMessageFromWebView = async (event: any) => {
         try {
             const responseData = JSON.parse(event.nativeEvent.data);
             if (responseData.status === "success" && responseData.data?.token) {
+                setLoading(true);
                 const token = responseData.data.token;
                 const user = responseData.data.user;
 
@@ -81,6 +111,7 @@ export default function LoginScreen() {
                 router.replace("/");
             }
         } catch (error) {
+            setLoading(false);
             console.error("Gagal parsing data login dari backend:", error);
         }
     };
@@ -111,71 +142,92 @@ export default function LoginScreen() {
                     javaScriptEnabled={true}
                     domStorageEnabled={true}
                     startInLoadingState={true}
+                    onLoadEnd={() => setLoading(false)}
                     userAgent="Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
                 />
             </SafeAreaView>
         );
     }
 
+    // 🔥 SCREEN LOADING SPLASH: Kunci mati posisinya di tengah layar penuh
+    if (loading && !showWebView) {
+        return (
+            <View style={[styles.loadingContainer, { width: width || "100%", height: height || "100vh" }]}>
+                <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+                <LinearGradient
+                    colors={["#FFFFFF", "#FEE4EA"]}
+                    style={StyleSheet.absoluteFillObject}
+                />
+                <View style={styles.loadingInner}>
+                    <ActivityIndicator size="large" color="#E87A90" />
+                    <Text style={styles.loadingText}>Menyiapkan akun Mirai Planner...</Text>
+                </View>
+            </View>
+        );
+    }
+
     return (
-        <ImageBackground
-            source={require("@/assets/images/fotobackground.png")}
-            style={styles.backgroundImage}
-            resizeMode="cover"
-        >
-            <LinearGradient
-                colors={["rgba(255,255,255,0.8)", "rgba(254,228,234,0.95)"]}
-                style={StyleSheet.absoluteFillObject}
+        <View style={{ width, height, backgroundColor: "#FEF6F8" }}>
+            <ImageBackground
+                source={require("@/assets/images/fotobackground.png")}
+                style={styles.backgroundImage}
+                resizeMode="cover"
             >
-                <SafeAreaView style={styles.container}>
-                    <StatusBar barStyle="dark-content" translucent />
+                <LinearGradient
+                    colors={["rgba(255,255,255,0.8)", "rgba(254,228,234,0.95)"]}
+                    style={StyleSheet.absoluteFillObject}
+                >
+                    <SafeAreaView style={styles.container}>
+                        <StatusBar barStyle="dark-content" translucent />
 
-                    <View style={styles.brandContainer}>
-                        <View style={styles.logoBg}>
-                            <MaterialCommunityIcons name="flower" size={48} color="#E87A90" />
+                        <View style={styles.brandContainer}>
+                            <View style={styles.logoBg}>
+                                <MaterialCommunityIcons name="flower" size={48} color="#E87A90" />
+                            </View>
+                            <Text style={styles.titleText}>Mirai Planner</Text>
+                            <Text style={styles.subtitleText}>Smart Calendar AI Assistant</Text>
                         </View>
-                        <Text style={styles.titleText}>Mirai Planner</Text>
-                        <Text style={styles.subtitleText}>Smart Calendar AI Assistant</Text>
-                    </View>
 
-                    <View style={styles.buttonContainer}>
-                        <TouchableOpacity
-                            style={[styles.googleButton, loading && { opacity: 0.6 }]}
-                            onPress={handleLogin}
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <ActivityIndicator color="#FFF" style={styles.icon} />
-                            ) : (
+                        <View style={styles.buttonContainer}>
+                            <TouchableOpacity
+                                style={styles.googleButton}
+                                onPress={handleLogin}
+                            >
                                 <MaterialCommunityIcons
                                     name="google"
                                     size={24}
                                     color="#FFF"
                                     style={styles.icon}
                                 />
-                            )}
-                            <Text style={styles.buttonText}>
-                                {loading ? "Mengalihkan..." : "Masuk dengan Google"}
-                            </Text>
-                        </TouchableOpacity>
+                                <Text style={styles.buttonText}>Masuk dengan Google</Text>
+                            </TouchableOpacity>
 
-                        <Text style={styles.footerText}>
-                            Aman • Login via Google Secure OAuth
-                        </Text>
-                    </View>
-                </SafeAreaView>
-            </LinearGradient>
-        </ImageBackground>
+                            <Text style={styles.footerText}>
+                                Aman • Login via Google Secure OAuth
+                            </Text>
+                        </View>
+                    </SafeAreaView>
+                </LinearGradient>
+            </ImageBackground>
+        </View>
     );
 }
 
+// 📋 STYLING TERISOLASI (Di luar rumpun fungsi utama)
 const styles = StyleSheet.create({
-    backgroundImage: { flex: 1 },
+    backgroundImage: {
+        flex: 1,
+        width: "100%",
+        height: "100%",
+    },
     container: {
         flex: 1,
         justifyContent: "space-between",
         paddingHorizontal: 32,
         paddingVertical: 60,
+        width: "100%",
+        maxWidth: 500,
+        alignSelf: "center",
     },
     brandContainer: { alignItems: "center", marginTop: 80 },
     logoBg: {
@@ -186,6 +238,10 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         elevation: 6,
+        shadowColor: "#E87A90",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
     },
     titleText: {
         fontSize: 28,
@@ -199,8 +255,9 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     buttonContainer: {
-        marginBottom: 20,
+        marginBottom: 40,
         alignItems: "center",
+        width: "100%",
     },
     googleButton: {
         flexDirection: "row",
@@ -210,6 +267,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         justifyContent: "center",
         alignItems: "center",
+        elevation: 4,
     },
     icon: { marginRight: 12 },
     buttonText: {
@@ -227,5 +285,28 @@ const styles = StyleSheet.create({
         alignItems: "center",
         padding: 12,
         backgroundColor: "#F5F5F5",
+    },
+    loadingContainer: {
+        position: Platform.OS === "web" ? "fixed" : "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 99999,
+        backgroundColor: "#FFFFFF",
+    },
+    loadingInner: {
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 20,
+    },
+    loadingText: {
+        marginTop: 20,
+        color: "#E87A90",
+        fontSize: 16,
+        fontWeight: "600",
+        textAlign: "center",
     },
 });
