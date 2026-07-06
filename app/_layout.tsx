@@ -10,58 +10,38 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { useFonts } from "expo-font";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
-
-// 🔥 FIX UTAMA ERROR 1: Inject font MaterialCommunityIcons lewat CDN untuk platform Web
-if (Platform.OS === "web" && typeof document !== "undefined") {
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href =
-    "https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css";
-  document.head.appendChild(link);
-}
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
-  const [loaded] = useFonts(
-    Platform.OS === "web"
-      ? {}
-      : {
-          ...MaterialCommunityIcons.font,
-        }
-  );
+  // Load font asli dari @expo/vector-icons untuk SEMUA platform (termasuk web)
+  const [loaded] = useFonts({
+    ...MaterialCommunityIcons.font,
+  });
 
   useEffect(() => {
     if (Platform.OS === "web") {
       document.title = "Mirai Planner";
 
-      // CDN ICON FIX
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href =
-        "https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css";
-      document.head.appendChild(link);
-
-      const style = document.createElement("style");
-      style.innerHTML = `
-        [style*="material-community"] {
-          font-family: "Material Design Icons" !important;
-        }
-      `;
-      document.head.appendChild(style);
-
-      // CLEAN URL
+      // Bersihin query string token/user dari address bar tanpa reload
       const url = new URL(window.location.href);
       if (url.searchParams.has("token")) {
         url.searchParams.delete("token");
         url.searchParams.delete("user");
-
-        window.history.replaceState({}, document.title, url.pathname + url.search);
+        window.history.replaceState(
+          {},
+          document.title,
+          url.pathname + url.search,
+        );
       }
     }
   }, []);
+
+  // Tunggu font kelar dimuat dulu sebelum render, biar icon gak flash/kosong
+  if (!loaded) {
+    return null;
+  }
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>

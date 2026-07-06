@@ -26,64 +26,61 @@ export default function LoginScreen() {
   const { width, height } = useWindowDimensions();
   const params = useLocalSearchParams();
 
-  // 🔒 State utama dikendalikan secara aman tanpa merusak proses Hydration server
   const [loading, setLoading] = useState(false);
   const [showWebView, setShowWebView] = useState(false);
 
-  // 🔥 FIX UTAMA HYDRATION ERROR #418: Potong URL secara sinkronis sebelum layar digambar browser
+  // Simpan token dari URL web ke state lokal, JANGAN mutate object params
+  const [webAuthPayload, setWebAuthPayload] = useState<{
+    token: string;
+    user: string | null;
+  } | null>(null);
+
+  // Potong token dari address bar secepatnya (sebelum paint), simpan ke state
   useLayoutEffect(() => {
     if (Platform.OS === "web" && typeof window !== "undefined") {
       const url = new URL(window.location.href);
       if (url.searchParams.has("token")) {
-        setLoading(true); // Langsung nyalakan splash loading secepat kilat
+        setLoading(true);
 
         const backupToken = url.searchParams.get("token");
         const backupUser = url.searchParams.get("user");
 
-        // Bersihkan query string di address bar instan!
         url.searchParams.delete("token");
         url.searchParams.delete("user");
-        window.history.replaceState(
-          {},
-          document.title,
-          url.pathname + url.search,
-        );
+        window.history.replaceState({}, document.title, url.pathname + url.search);
 
-        // Suntik balik secara aman ke dalam objek params internal React
         if (backupToken) {
-          params.token = backupToken;
-          if (backupUser) params.user = backupUser;
+          setWebAuthPayload({ token: backupToken, user: backupUser });
         }
       }
     }
   }, []);
 
-  // 🔄 EFFECT 1: Amankan penyimpanan sesi data user ke local storage & Lempar ke beranda
+  // Proses token — baik dari query param native (params.token) maupun web (webAuthPayload)
   useEffect(() => {
     const handleToken = async () => {
-      if (params.token) {
-        setLoading(true);
-        const token = params.token as string;
-        const user = params.user ? JSON.parse(params.user as string) : null;
+      const token = (params.token as string) || webAuthPayload?.token;
+      const userRaw = (params.user as string) || webAuthPayload?.user;
 
-        if (Platform.OS === "web") {
-          localStorage.setItem("user_token", token);
-          if (user) localStorage.setItem("userData", JSON.stringify(user));
-        } else {
-          await AsyncStorage.setItem("user_token", token);
-          if (user)
-            await AsyncStorage.setItem("userData", JSON.stringify(user));
-        }
+      if (!token) return;
 
-        // Redirect aman ke beranda utama
-        router.replace("/");
+      setLoading(true);
+      const user = userRaw ? JSON.parse(userRaw) : null;
+
+      if (Platform.OS === "web") {
+        localStorage.setItem("user_token", token);
+        if (user) localStorage.setItem("userData", JSON.stringify(user));
+      } else {
+        await AsyncStorage.setItem("user_token", token);
+        if (user) await AsyncStorage.setItem("userData", JSON.stringify(user));
       }
+
+      router.replace("/");
     };
 
     handleToken();
-  }, [params.token]);
+  }, [params.token, webAuthPayload]);
 
-  // 🔥 LOGIN CONTROLLER
   const handleLogin = () => {
     setLoading(true);
 
@@ -97,7 +94,6 @@ export default function LoginScreen() {
     }
   };
 
-  // 🔄 EFFECT 2: Jalur Sukses Login Khusus HP Mobile via WebView
   const onMessageFromWebView = async (event: any) => {
     try {
       const responseData = JSON.parse(event.nativeEvent.data);
@@ -118,15 +114,11 @@ export default function LoginScreen() {
     }
   };
 
-  // 📱 RENDERING LAYER WEBVIEW (Khusus Android / iOS)
   if (showWebView && Platform.OS !== "web" && WebView) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: "#FFF" }}>
         <StatusBar barStyle="dark-content" />
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={() => setShowWebView(false)}
-        >
+        <TouchableOpacity style={styles.closeButton} onPress={() => setShowWebView(false)}>
           <MaterialCommunityIcons name="close" size={24} color="#333" />
           <Text style={{ fontWeight: "600", marginLeft: 4 }}>Batal</Text>
         </TouchableOpacity>
@@ -134,13 +126,13 @@ export default function LoginScreen() {
           source={{ uri: `${API_URL.LOGIN_GOOGLE}?return_to=mobile` }}
           onMessage={onMessageFromWebView}
           injectedJavaScript={`
-                        const checkInterval = setInterval(() => {
-                            if (document.body && document.body.innerText.includes('"status"')) {
-                                window.ReactNativeWebView.postMessage(document.body.innerText);
-                                clearInterval(checkInterval);
-                            }
-                        }, 500);
-                    `}
+            const checkInterval = setInterval(() => {
+              if (document.body && document.body.innerText.includes('"status"')) {
+                window.ReactNativeWebView.postMessage(document.body.innerText);
+                clearInterval(checkInterval);
+              }
+            }, 500);
+          `}
           javaScriptEnabled={true}
           domStorageEnabled={true}
           startInLoadingState={true}
@@ -151,29 +143,14 @@ export default function LoginScreen() {
     );
   }
 
-  // 🔥 SCREEN LOADING SPLASH: Kunci mati posisinya di tengah layar penuh
   if (loading && !showWebView) {
     return (
-      <View
-        style={[
-          styles.loadingContainer,
-          { width: width || "100%", height: height },
-        ]}
-      >
-        <StatusBar
-          barStyle="dark-content"
-          translucent
-          backgroundColor="transparent"
-        />
-        <LinearGradient
-          colors={["#FFFFFF", "#FEE4EA"]}
-          style={StyleSheet.absoluteFillObject}
-        />
+      <View style={[styles.loadingContainer, { width: width || "100%", height: height }]}>
+        <StatusBar barStyle="dark-content" translucent backgroundColor="transparent" />
+        <LinearGradient colors={["#FFFFFF", "#FEE4EA"]} style={StyleSheet.absoluteFillObject} />
         <View style={styles.loadingInner}>
           <ActivityIndicator size="large" color="#E87A90" />
-          <Text style={styles.loadingText}>
-            Menyiapkan akun Mirai Planner...
-          </Text>
+          <Text style={styles.loadingText}>Menyiapkan akun Mirai Planner...</Text>
         </View>
       </View>
     );
@@ -195,35 +172,19 @@ export default function LoginScreen() {
 
             <View style={styles.brandContainer}>
               <View style={styles.logoBg}>
-                <MaterialCommunityIcons
-                  name="flower"
-                  size={48}
-                  color="#E87A90"
-                />
+                <MaterialCommunityIcons name="flower" size={48} color="#E87A90" />
               </View>
               <Text style={styles.titleText}>Mirai Planner</Text>
-              <Text style={styles.subtitleText}>
-                Smart Calendar AI Assistant
-              </Text>
+              <Text style={styles.subtitleText}>Smart Calendar AI Assistant</Text>
             </View>
 
             <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={styles.googleButton}
-                onPress={handleLogin}
-              >
-                <MaterialCommunityIcons
-                  name="google"
-                  size={24}
-                  color="#FFF"
-                  style={styles.icon}
-                />
+              <TouchableOpacity style={styles.googleButton} onPress={handleLogin}>
+                <MaterialCommunityIcons name="google" size={24} color="#FFF" style={styles.icon} />
                 <Text style={styles.buttonText}>Masuk dengan Google</Text>
               </TouchableOpacity>
 
-              <Text style={styles.footerText}>
-                Aman • Login via Google Secure OAuth
-              </Text>
+              <Text style={styles.footerText}>Aman • Login via Google Secure OAuth</Text>
             </View>
           </SafeAreaView>
         </LinearGradient>
@@ -231,6 +192,8 @@ export default function LoginScreen() {
     </View>
   );
 }
+
+// ...styles sama persis kayak punya kamu, gak ada yang berubah
 
 const styles = StyleSheet.create({
   backgroundImage: {
