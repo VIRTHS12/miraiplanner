@@ -6,25 +6,25 @@ import {
 import { useEffect } from "react";
 import { Platform } from "react-native";
 import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { useFonts } from "expo-font";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
-  // Load font asli dari @expo/vector-icons untuk SEMUA platform (termasuk web)
-  const [loaded] = useFonts({
-    ...MaterialCommunityIcons.font,
+  const [loaded, error] = useFonts({
+    MaterialCommunityIcons: require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"),
   });
 
   useEffect(() => {
     if (Platform.OS === "web") {
       document.title = "Mirai Planner";
 
-      // Bersihin query string token/user dari address bar tanpa reload
       const url = new URL(window.location.href);
       if (url.searchParams.has("token")) {
         url.searchParams.delete("token");
@@ -38,8 +38,14 @@ export default function RootLayout() {
     }
   }, []);
 
-  // Tunggu font kelar dimuat dulu sebelum render, biar icon gak flash/kosong
-  if (!loaded) {
+  // 3. Sembunyikan splash screen kalau font udah sukses ke-load atau error
+  useEffect(() => {
+    if (loaded || error) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded, error]);
+
+  if (!loaded && !error) {
     return null;
   }
 
@@ -47,7 +53,6 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="chatscreen" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: "modal" }} />
