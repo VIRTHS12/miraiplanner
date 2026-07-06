@@ -32,4 +32,12 @@ const fontStyles = `
     font-style: normal;
     font-display: swap;
   }
+  @font-face {
+    font-family: 'feather';
+    src: url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js') format('truetype'); /* jadelivr / cdnjs feather ttf */
+    src: url('https://cdn.jsdelivr.net/npm/feather-icons/dist/icons.svg') format('svg');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
 `;
