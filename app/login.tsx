@@ -157,7 +157,7 @@ export default function LoginScreen() {
       <View
         style={[
           styles.loadingContainer,
-          { width: width || "100%", height: height || "100vh" },
+          { width: width || "100%", height: height },
         ]}
       >
         <StatusBar
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
   },
   loadingContainer: {
-    position: Platform.OS === "web" ? "fixed" : "absolute",
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
