@@ -10,6 +10,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { useFonts } from "expo-font";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
 SplashScreen.preventAutoHideAsync();
@@ -18,8 +19,8 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   const [loaded, error] = useFonts({
-    MaterialCommunityIcons: require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"),
-  });
+  ...FontAwesome.font, // Ambil font standard, MaterialCommunityIcons aman karena udah di-handle global css web
+});
 
   useEffect(() => {
     if (Platform.OS === "web") {
