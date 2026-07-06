@@ -2,12 +2,16 @@
   Access-Control-Allow-Origin: *
   X-Content-Type-Options: nosniff
 
-# Izinkan tipe font untuk semua ttf di project
+# Solusi Mutakhir: Cegah file HTML utama di-cache agar selalu sinkron dengan JS baru
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
 /*.ttf
   Content-Type: font/ttf
   Access-Control-Allow-Origin: *
 
-# Pastikan Cloudflare mengirimkan MIME-type yang benar untuk folder node_modules publik
 /assets/node_modules/*
   Content-Type: font/ttf
   Access-Control-Allow-Origin: *
