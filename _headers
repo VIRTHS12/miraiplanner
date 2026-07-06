@@ -2,7 +2,13 @@
   Access-Control-Allow-Origin: *
   X-Content-Type-Options: nosniff
 
-/assets/fonts/*
+# Izinkan tipe font untuk semua ttf di project
+/*.ttf
+  Content-Type: font/ttf
+  Access-Control-Allow-Origin: *
+
+# Pastikan Cloudflare mengirimkan MIME-type yang benar untuk folder node_modules publik
+/assets/node_modules/*
   Content-Type: font/ttf
   Access-Control-Allow-Origin: *
   Cache-Control: public, max-age=31536000
