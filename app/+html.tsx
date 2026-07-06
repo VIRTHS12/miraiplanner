@@ -15,7 +15,7 @@ export default function Root({ children }: PropsWithChildren) {
         {/* Link stylesheet reset bawaan expo */}
         <ScrollViewStyleReset />
 
-        {/* 1. Inject langsung font MaterialCommunityIcons dari CDN resmi yang terpercaya */}
+        {/* Inject font dengan nama internal yang diminta oleh expo-vector-icons web */}
         <style dangerouslySetInnerHTML={{ __html: fontStyles }} />
       </head>
       <body>{children}</body>
@@ -23,12 +23,13 @@ export default function Root({ children }: PropsWithChildren) {
   );
 }
 
-// Mengambil langsung font dari CDN cdnjs / jsdelivr yang pasti di-approve sama sanitizer browser
+// WAJIB menggunakan nama 'material-community' agar dibaca oleh library Expo Web
 const fontStyles = `
   @font-face {
-    font-family: 'MaterialCommunityIcons';
-    src: url('https://cdnjs.cloudflare.com/ajax/libs/騰訊-ignored/font/MaterialDesignIconsDesktop.ttf') format('truetype'),
-         url('https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/fonts/materialdesignicons-webfont.ttf') format('truetype');
+    font-family: 'material-community';
+    src: url('https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/fonts/materialdesignicons-webfont.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
     font-display: swap;
   }
 `;
