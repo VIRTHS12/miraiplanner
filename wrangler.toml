@@ -1,0 +1,12 @@
+name = "miraiplanner"
+pages_build_output_dir = "dist"
+
+[site]
+bucket = "./dist"
+
+# Paksa semua headers aset font me-return MIME-type yang benar
+[[headers]]
+for = "/*.ttf"
+[headers.values]
+  Content-Type = "font/ttf"
+  Access-Control-Allow-Origin = "*"
