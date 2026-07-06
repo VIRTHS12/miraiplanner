@@ -51,10 +51,10 @@ export default function HomeScreen() {
                     const userStr = params.user as string;
                     if (Platform.OS === "web") {
                         localStorage.setItem("user_token", tokenStr);
-                        if (userStr) localStorage.setItem("user_data", userStr);
+                        if (userStr) localStorage.setItem("userData", userStr);
                     } else {
                         await AsyncStorage.setItem("user_token", tokenStr);
-                        if (userStr) await AsyncStorage.setItem("user_data", userStr);
+                        if (userStr) await AsyncStorage.setItem("userData", userStr);
                     }
                     token = tokenStr;
                     router.setParams({ token: undefined, user: undefined });
@@ -79,9 +79,9 @@ export default function HomeScreen() {
         try {
             let storedUser = null;
             if (Platform.OS === "web") {
-                storedUser = localStorage.getItem("user_data");
+                storedUser = localStorage.getItem("userData");
             } else {
-                storedUser = await AsyncStorage.getItem("user_data");
+                storedUser = await AsyncStorage.getItem("userData");
             }
             setUserData(storedUser ? JSON.parse(storedUser) : { name: "Pengguna" });
 
@@ -132,10 +132,10 @@ export default function HomeScreen() {
         setLoading(true);
         if (Platform.OS === "web") {
             localStorage.removeItem("user_token");
-            localStorage.removeItem("user_data");
+            localStorage.removeItem("userData");
         } else {
             await AsyncStorage.removeItem("user_token");
-            await AsyncStorage.removeItem("user_data");
+            await AsyncStorage.removeItem("userData");
         }
         router.replace("/login");
     };

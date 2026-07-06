@@ -11,15 +11,14 @@ export default function RootLayout() {
   const [clientReady, setClientReady] = useState(false);
 
   useEffect(() => {
-    // 1. Set client siap hanya ketika sudah benar-benar masuk browser
+    // Pastikan kode ini HANYA dieksekusi di browser murni (client-side)
     setClientReady(true);
 
     if (Platform.OS === "web") {
       document.title = "Mirai Planner";
 
-      // 2. Inject CSS Font secara dinamis langsung ke Head Browser khusus Web
-      // Cara ini akan mendepak dan menimpa (override) pencarian font lokal Expo ke node_modules
-      const fontName = "material-community";
+      // Suntik font langsung ke head agar dibaca secara native oleh web mobile maupun desktop
+      const fontName = "mirai-fonts-setup";
       if (!document.getElementById(fontName)) {
         const style = document.createElement("style");
         style.id = fontName;
@@ -31,13 +30,19 @@ export default function RootLayout() {
             font-style: normal;
           }
           @font-face {
+            font-family: 'MaterialCommunityIcons';
+            src: url('/assets/fonts/MaterialCommunityIcons.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+          }
+          @font-face {
             font-family: 'feather';
             src: url('/assets/fonts/Feather.ttf') format('truetype');
             font-weight: 400;
             font-style: normal;
           }
           @font-face {
-            font-family: 'FontAwesome';
+            font-family: 'font-awesome';
             src: url('/assets/fonts/FontAwesome.ttf') format('truetype');
             font-weight: 400;
             font-style: normal;
@@ -64,6 +69,7 @@ export default function RootLayout() {
         document.head.appendChild(style);
       }
 
+      // Bersihkan URL token
       const url = new URL(window.location.href);
       if (url.searchParams.has("token")) {
         url.searchParams.delete("token");
@@ -73,8 +79,8 @@ export default function RootLayout() {
     }
   }, []);
 
-  // 3. Hydration Guard: Jangan render pohon komponen apapun sebelum client siap murni di browser
-  // Obat paling mujarab untuk mematikan Minified React error #418 selamanya!
+  // JANGAN render kerangka UI apapun jika client belum siap murni di browser.
+  // Ini tameng mutlak biar mobile emulation gak ngetrigger perbedaan DOM pas proses hidrasi.
   if (!clientReady) {
     return null;
   }
