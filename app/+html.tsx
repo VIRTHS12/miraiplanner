@@ -7,15 +7,10 @@ export default function Root({ children }: PropsWithChildren) {
       <head>
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, shrink-to-fit=no"
-        />
-
-        {/* Link stylesheet reset bawaan expo */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <ScrollViewStyleReset />
-
-        {/* Inject font dengan nama internal yang diminta oleh expo-vector-icons web */}
+        
+        {/* Inject langsung dari CDN, aman dari sanitizer Cloudflare */}
         <style dangerouslySetInnerHTML={{ __html: fontStyles }} />
       </head>
       <body>{children}</body>
@@ -23,7 +18,6 @@ export default function Root({ children }: PropsWithChildren) {
   );
 }
 
-// WAJIB menggunakan nama 'material-community' agar dibaca oleh library Expo Web
 const fontStyles = `
   @font-face {
     font-family: 'material-community';
@@ -34,8 +28,7 @@ const fontStyles = `
   }
   @font-face {
     font-family: 'feather';
-    src: url('https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js') format('truetype'); /* jadelivr / cdnjs feather ttf */
-    src: url('https://cdn.jsdelivr.net/npm/feather-icons/dist/icons.svg') format('svg');
+    src: url('https://cdn.jsdelivr.net/npm/feather-font@1.0.0/src/fonts/feather.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
