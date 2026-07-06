@@ -36,6 +36,30 @@ export default function RootLayout() {
             font-weight: 400;
             font-style: normal;
           }
+          @font-face {
+            font-family: 'FontAwesome';
+            src: url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/fonts/fontawesome-webfont.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+          }
+          @font-face {
+            font-family: 'Ionicons';
+            src: url('https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/fonts/ionicons.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+          }
+          @font-face {
+            font-family: 'anticon';
+            src: url('https://cdnjs.cloudflare.com/ajax/libs/ant-design-icons/2.0.0/fonts/AntDesign.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+          }
+          @font-face {
+            font-family: 'MaterialIcons';
+            src: url('https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/3.0.1/MaterialIcons-Regular.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+          }
         `;
         document.head.appendChild(style);
       }
