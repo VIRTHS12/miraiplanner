@@ -47,18 +47,20 @@ export default function ProfileScreen() {
           setLoading(true);
           let storedUser = null;
 
+          // ✅ Ubah key dari "user_data" menjadi "userData" biar sama dengan HomeScreen
           if (Platform.OS === "web") {
-            storedUser = localStorage.getItem("user_data");
+            storedUser = localStorage.getItem("userData");
           } else {
-            storedUser = await AsyncStorage.getItem("user_data");
+            storedUser = await AsyncStorage.getItem("userData");
           }
 
           if (storedUser) {
             setUserData(JSON.parse(storedUser));
           } else {
+            // Data cadangan jika storage benar-benar kosong
             setUserData({
-              name: "Raihan Rizqullah",
-              email: "rahan@example.com",
+              name: "Pengguna Mirai",
+              email: "belum_login@mirai.com",
             });
           }
         } catch (err) {
@@ -74,16 +76,16 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     setLoading(true);
+    // ✅ Samakan juga fungsi hapus key-nya saat logout
     if (Platform.OS === "web") {
       localStorage.removeItem("user_token");
-      localStorage.removeItem("user_data");
+      localStorage.removeItem("userData");
     } else {
       await AsyncStorage.removeItem("user_token");
-      await AsyncStorage.removeItem("user_data");
+      await AsyncStorage.removeItem("userData");
     }
     router.replace("/login");
   };
-
   if (loading && !userData) {
     return (
       <View style={styles.loadingContainer}>
