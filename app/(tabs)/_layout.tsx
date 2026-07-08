@@ -1,9 +1,7 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
-import Feather from "@react-native-vector-icons/feather";
-import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons";
-
+import { Feather, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
 export default function TabsLayout() {
     const PINK_PRIMARY = "#E87A90";
     const TEXT_LIGHT = "#888888";

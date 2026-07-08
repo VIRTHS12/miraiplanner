@@ -12,10 +12,8 @@ import {
     useWindowDimensions,
     ActivityIndicator,
 } from "react-native";
-import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons";
+import { Feather, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons"
 import { LinearGradient } from "expo-linear-gradient";
-import Feather from "@react-native-vector-icons/feather";
-
 import { BlurView } from "expo-blur";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";

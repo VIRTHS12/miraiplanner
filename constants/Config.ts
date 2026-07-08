@@ -1,4 +1,4 @@
-const BASE_URL = "https://activity-why-streak.ngrok-free.dev";
+const BASE_URL = "https://miraiapi-production.up.railway.app";
 
 export const API_URL = {
     // Jalur Base utama

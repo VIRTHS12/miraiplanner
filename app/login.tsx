@@ -11,7 +11,8 @@ import {
   Platform,
   useWindowDimensions,
 } from "react-native";
-import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons";import { LinearGradient } from "expo-linear-gradient";
+import { Feather, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons"
+import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { API_URL } from "../constants/Config";

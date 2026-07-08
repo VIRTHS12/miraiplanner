@@ -10,16 +10,15 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useFonts } from "expo-font";
-import { Feather } from "@react-native-vector-icons/feather";
-import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons";
-
+import Feather from "@expo/vector-icons/Feather";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const [clientReady, setClientReady] = useState(false);
 
     const [loaded] = useFonts({
-        ...Feather,
-        ...MaterialCommunityIcons,
+        ...Feather.font,
+        ...MaterialCommunityIcons.font,
     });
 
     useEffect(() => {
