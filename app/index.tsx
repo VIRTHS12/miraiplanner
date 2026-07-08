@@ -12,7 +12,6 @@ import {
     useWindowDimensions,
     ActivityIndicator,
 } from "react-native";
-// ✅ Migrasi total dari @expo/vector-icons ke komponen murni SVG Lucide
 import { 
     Flower, 
     Sparkles, 
@@ -30,23 +29,21 @@ import { Linking } from "react-native";
 
 export default function LandingScreen() {
     const PINK_PRIMARY = "#E87A90";
-    const TEXT_DARK = "#2D2D2D";
-    const TEXT_LIGHT = "#5A5A5A";
 
     const { width } = useWindowDimensions();
     const isLargeScreen = width >= 768;
 
     const [isChecking, setIsChecking] = useState(true);
 
-    // Fungsi pembantu untuk membuka link eksternal di Browser
-    const openLegalLink = (anchor: string) => {
-        const url = `https://virthas12.github.io/miraitospriv/${anchor}`;
+    // ✅ FIX UTAMA 1 & 2: Arahkan ke file dokumen statis di bawah root domain yang sama (Cloudflare Pages)
+    // Taruh file privacy.html dan terms.html di folder public/ lu!
+    const openLegalLink = (pageName: string) => {
+        const url = `https://miraiplanner.pages.dev/${pageName}.html`;
         Linking.openURL(url).catch((err) =>
             console.error("Gagal membuka URL:", err),
         );
     };
 
-    // Jalankan pengecekan session: Kalau user udah login, langsung lempar ke dashboard utama
     useEffect(() => {
         const checkExistingAuth = async () => {
             try {
@@ -56,7 +53,6 @@ export default function LandingScreen() {
                         : await AsyncStorage.getItem("user_token");
 
                 if (token) {
-                    // Disesuaikan dengan struktur folder kamu: app/(tabs)/home.tsx
                     router.replace("/(tabs)/home");
                 }
             } catch (err) {
@@ -84,9 +80,9 @@ export default function LandingScreen() {
         >
             <LinearGradient
                 colors={[
-                    "rgba(255,255,255,0.90)",
-                    "rgba(254,238,242,0.70)",
-                    "rgba(254,228,234,0.92)",
+                    "rgba(255,255,255,0.92)",
+                    "rgba(254,238,242,0.80)",
+                    "rgba(254,228,234,0.95)",
                 ]}
                 locations={[0, 0.5, 1]}
                 style={StyleSheet.absoluteFillObject}
@@ -106,13 +102,13 @@ export default function LandingScreen() {
                             ]}
                             showsVerticalScrollIndicator={false}
                         >
-                            {/* TOP NAVBAR / BRAND HEADER */}
+                            {/* TOP NAVBAR */}
                             <View style={styles.navbar}>
                                 <View style={styles.logoRow}>
                                     <View style={styles.miniLogoBg}>
-                                        {/* ✅ Menggunakan Lucide Flower */}
                                         <Flower size={20} color={PINK_PRIMARY} />
                                     </View>
+                                    {/* ✅ FIX UTAMA 4: Pertegas teks nama aplikasi agar match 100% dengan OAuth Console */}
                                     <Text style={styles.brandName}>Mirai Planner</Text>
                                 </View>
 
@@ -125,87 +121,58 @@ export default function LandingScreen() {
                             </View>
 
                             {/* HERO SECTION */}
-                            <View
-                                style={[
-                                    styles.heroSection,
-                                    isLargeScreen && styles.heroSectionWeb,
-                                ]}
-                            >
-                                <View
-                                    style={[
-                                        styles.heroTextContainer,
-                                        isLargeScreen && { flex: 1.2 },
-                                    ]}
-                                >
+                            <View style={[styles.heroSection, isLargeScreen && styles.heroSectionWeb]}>
+                                <View style={[styles.heroTextContainer, isLargeScreen && { flex: 1.2 }]}>
                                     <View style={styles.badge}>
-                                        {/* ✅ Menggunakan Lucide Sparkles */}
                                         <Sparkles 
                                             size={14} 
                                             color={PINK_PRIMARY} 
                                             style={{ marginRight: 6 }} 
                                         />
                                         <Text style={styles.badgeText}>
-                                            Smart Calendar Assistant
+                                            Smart Google Calendar AI Assistant
                                         </Text>
                                     </View>
 
-                                    <Text
-                                        style={[
-                                            styles.mainTitle,
-                                            isLargeScreen && styles.mainTitleWeb,
-                                        ]}
-                                    >
-                                        Rancang Masa Depanmu Lebih Teratur Bersama AI
+                                    {/* ✅ FIX UTAMA 4: Masukkan keyword nama aplikasi di dalam Title */}
+                                    <Text style={[styles.mainTitle, isLargeScreen && styles.mainTitleWeb]}>
+                                        Mirai Planner - Rancang Masa Depanmu Lebih Teratur Bersama AI
                                     </Text>
 
+                                    {/* ✅ FIX UTAMA 3: Deskripsi super jelas mengenai tujuan integrasi Google Calendar & AI (Lolos Sensor Bot Google) */}
                                     <Text style={styles.descriptionText}>
-                                        Mirai Planner mengintegrasikan Google Calendar dengan
-                                        kecerdasan buatan untuk membantu Anda menyusun jadwal,
-                                        memantau produktivitas bulanan, dan mengelola agenda harian
-                                        secara otomatis lewat obrolan pintar.
+                                        Mirai Planner adalah aplikasi asisten pintar yang mengintegrasikan akun Google Calendar Anda dengan model kecerdasan buatan (AI). Aplikasi ini dirancang secara khusus untuk membantu pengguna menyusun jadwal kegiatan, mendeteksi bentrok agenda harian, memantau produktivitas bulanan, serta mengotomatisasi pembuatan pengingat jadwal kerja secara instan melalui antarmuka obrolan percakapan yang aman.
                                     </Text>
 
                                     <TouchableOpacity
-                                        style={[
-                                            styles.ctaButton,
-                                            isLargeScreen && styles.ctaButtonWeb,
-                                        ]}
+                                        style={[styles.ctaButton, isLargeScreen && styles.ctaButtonWeb]}
                                         onPress={() => router.push("/login")}
                                         activeOpacity={0.8}
                                     >
                                         <Text style={styles.ctaButtonText}>
-                                            Mulai Sekarang gratis
+                                            Mulai Sekarang, Gratis!
                                         </Text>
-                                        {/* ✅ Menggunakan Lucide ArrowRight */}
                                         <ArrowRight size={18} color="#FFF" />
                                     </TouchableOpacity>
                                 </View>
 
                                 {/* HERO CARD PREVIEW */}
-                                <View
-                                    style={[
-                                        styles.heroVisualContainer,
-                                        isLargeScreen && { flex: 1 },
-                                    ]}
-                                >
+                                <View style={[styles.heroVisualContainer, isLargeScreen && { flex: 1 }]}>
                                     <View style={styles.previewCard}>
                                         <View style={styles.previewHeader}>
-                                            {/* ✅ Menggunakan Lucide Bot */}
                                             <Bot size={22} color={PINK_PRIMARY} />
                                             <Text style={styles.previewTitle}>
-                                                AI Planner Assistant
+                                                Mirai Planner Assistant
                                             </Text>
                                         </View>
                                         <View style={styles.chatBubble}>
                                             <Text style={styles.chatText}>
-                                                "Brok, jadwalkan rapat kerja tim besok jam 9 pagi sampai
-                                                11 siang ya."
+                                                "Brok, jadwalkan rapat kerja tim besok jam 9 pagi sampai 11 siang ya."
                                             </Text>
                                         </View>
                                         <View style={[styles.chatBubble, styles.chatBubbleBot]}>
                                             <Text style={[styles.chatText, { color: "#FFF" }]}>
-                                                "Siap! Rapat Kerja Tim telah disinkronisasikan ke Google
-                                                Calendar Anda untuk besok pukul 09:00 WIB."
+                                                "Siap! Rapat Kerja Tim telah disinkronisasikan ke Google Calendar Anda untuk besok pukul 09:00 WIB."
                                             </Text>
                                         </View>
                                     </View>
@@ -214,53 +181,36 @@ export default function LandingScreen() {
 
                             {/* CORE FEATURES INFO SECTION */}
                             <Text style={styles.sectionDividerTitle}>
-                                Fitur Utama Platform
+                                Fitur Utama Platform Mirai Planner
                             </Text>
-                            <View
-                                style={[
-                                    styles.featuresGrid,
-                                    isLargeScreen && styles.featuresGridWeb,
-                                ]}
-                            >
+                            <View style={[styles.featuresGrid, isLargeScreen && styles.featuresGridWeb]}>
                                 <View style={styles.featureItem}>
-                                    <View
-                                        style={[styles.iconWrapper, { backgroundColor: "#FCE4E8" }]}
-                                    >
-                                        {/* ✅ Menggunakan Lucide Calendar */}
+                                    <View style={[styles.iconWrapper, { backgroundColor: "#FCE4E8" }]}>
                                         <Calendar size={24} color={PINK_PRIMARY} />
                                     </View>
                                     <Text style={styles.featureTitle}>Google Calendar Sync</Text>
                                     <Text style={styles.featureDesc}>
-                                        Sinkronisasi dua arah yang aman untuk membaca, mengubah, dan
-                                        menghapus jadwal harian Anda secara real-time.
+                                        Sinkronisasi dua arah yang aman untuk membaca, mengubah, dan menghapus jadwal harian Anda secara real-time langsung ke kalender Google.
                                     </Text>
                                 </View>
 
                                 <View style={styles.featureItem}>
-                                    <View
-                                        style={[styles.iconWrapper, { backgroundColor: "#EFE5FD" }]}
-                                    >
-                                        {/* ✅ Menggunakan Lucide Brain */}
+                                    <View style={[styles.iconWrapper, { backgroundColor: "#EFE5FD" }]}>
                                         <Brain size={24} color="#8E69E8" />
                                     </View>
                                     <Text style={styles.featureTitle}>Natural AI Processing</Text>
                                     <Text style={styles.featureDesc}>
-                                        Cukup ketik perintah kasual layaknya mengobrol dengan teman,
-                                        asisten AI kami akan langsung menyusun jadwal Anda.
+                                        Cukup ketik perintah kasual layaknya mengobrol dengan teman, asisten AI kami akan langsung menyusun poin agenda kalender Anda.
                                     </Text>
                                 </View>
 
                                 <View style={styles.featureItem}>
-                                    <View
-                                        style={[styles.iconWrapper, { backgroundColor: "#E3F2FD" }]}
-                                    >
-                                        {/* ✅ Menggunakan Lucide TrendingUp */}
+                                    <View style={[styles.iconWrapper, { backgroundColor: "#E3F2FD" }]}>
                                         <TrendingUp size={24} color="#2196F3" />
                                     </View>
                                     <Text style={styles.featureTitle}>Ringkasan Bulanan</Text>
                                     <Text style={styles.featureDesc}>
-                                        Pantau perkembangan produktivitas, total agenda, serta
-                                        status jadwal aktif maupun selesai setiap bulannya.
+                                        Pantau perkembangan produktivitas, total agenda, serta analisis status jadwal aktif maupun selesai setiap bulannya.
                                     </Text>
                                 </View>
                             </View>
@@ -271,15 +221,16 @@ export default function LandingScreen() {
                                     © 2026 Mirai Planner. All rights reserved.
                                 </Text>
                                 <View style={styles.footerLinks}>
-                                    <TouchableOpacity onPress={() => openLegalLink("#privacy")}>
+                                    {/* ✅ FIX UTAMA 1: Pemanggilan fungsi link legalitas baru tanpa hash parameter */}
+                                    <TouchableOpacity onPress={() => openLegalLink("privacy")}>
                                         <Text style={styles.footerLinkText}>
-                                            Kebijakan Privasi (Privacy Policy)
+                                            Privacy Policy
                                         </Text>
                                     </TouchableOpacity>
                                     <Text style={styles.footerDivider}>•</Text>
-                                    <TouchableOpacity onPress={() => openLegalLink("#terms")}>
+                                    <TouchableOpacity onPress={() => openLegalLink("terms")}>
                                         <Text style={styles.footerLinkText}>
-                                            Syarat & Ketentuan
+                                            Terms of Service
                                         </Text>
                                     </TouchableOpacity>
                                 </View>
@@ -301,11 +252,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         backgroundColor: "#FEF2F4",
     },
-    scrollContainer: {
-        paddingHorizontal: 20,
-        paddingTop: 24,
-        paddingBottom: 40,
-    },
+    scrollContainer: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 },
     scrollContainerWeb: {
         paddingHorizontal: 60,
         paddingTop: 30,
@@ -328,7 +275,6 @@ const styles = StyleSheet.create({
         backgroundColor: "#FFF",
         justifyContent: "center",
         alignItems: "center",
-        boxShadow: "0px 4px 10px rgba(0,0,0,0.03)",
     },
     brandName: {
         fontSize: 18,
@@ -344,19 +290,9 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     navButtonText: { color: "#E87A90", fontWeight: "700", fontSize: 14 },
-    heroSection: {
-        marginBottom: 60,
-        gap: 32,
-    },
-    heroSectionWeb: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginTop: 20,
-        marginBottom: 80,
-    },
-    heroTextContainer: {
-        alignItems: "flex-start",
-    },
+    heroSection: { marginBottom: 60, gap: 32 },
+    heroSectionWeb: { flexDirection: "row", alignItems: "center", marginTop: 20, marginBottom: 80 },
+    heroTextContainer: { alignItems: "flex-start" },
     badge: {
         flexDirection: "row",
         alignItems: "center",
@@ -375,16 +311,8 @@ const styles = StyleSheet.create({
         letterSpacing: -0.5,
         marginBottom: 16,
     },
-    mainTitleWeb: {
-        fontSize: 46,
-        lineHeight: 58,
-    },
-    descriptionText: {
-        fontSize: 15,
-        color: "#5A5A5A",
-        lineHeight: 24,
-        marginBottom: 28,
-    },
+    mainTitleWeb: { fontSize: 44, lineHeight: 56 },
+    descriptionText: { fontSize: 14, color: "#5A5A5A", lineHeight: 24, marginBottom: 28, textAlign: "justify" },
     ctaButton: {
         backgroundColor: "#E87A90",
         borderRadius: 16,
@@ -392,41 +320,19 @@ const styles = StyleSheet.create({
         paddingHorizontal: 28,
         flexDirection: "row",
         alignItems: "center",
-        boxShadow: "0px 6px 20px rgba(232,122,144,0.3)",
     },
-    ctaButtonWeb: {
-        paddingHorizontal: 36,
-    },
-    ctaButtonText: {
-        color: "#FFF",
-        fontWeight: "700",
-        fontSize: 16,
-        marginRight: 10,
-    },
-    heroVisualContainer: {
-        width: "100%",
-        alignItems: "center",
-        justifyContent: "center",
-    },
+    ctaButtonWeb: { paddingHorizontal: 36 },
+    ctaButtonText: { color: "#FFF", fontWeight: "700", fontSize: 16, marginRight: 10 },
+    heroVisualContainer: { width: "100%", alignItems: "center", justifyContent: "center" },
     previewCard: {
         backgroundColor: "rgba(255,255,255,0.95)",
         borderRadius: 24,
         padding: 20,
         width: "100%",
         maxWidth: 420,
-        boxShadow: "0px 10px 30px rgba(232,122,144,0.12)",
     },
-    previewHeader: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 16,
-    },
-    previewTitle: {
-        fontSize: 15,
-        fontWeight: "700",
-        color: "#2D2D2D",
-        marginLeft: 10,
-    },
+    previewHeader: { flexDirection: "row", alignItems: "center", marginBottom: 16 },
+    previewTitle: { fontSize: 15, fontWeight: "700", color: "#2D2D2D", marginLeft: 10 },
     chatBubble: {
         backgroundColor: "#F5F5F5",
         padding: 12,
@@ -435,28 +341,11 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         maxWidth: "85%",
     },
-    chatBubbleBot: {
-        backgroundColor: "#E87A90",
-        alignSelf: "flex-end",
-        borderTopLeftRadius: 16,
-        borderTopRightRadius: 4,
-    },
+    chatBubbleBot: { backgroundColor: "#E87A90", alignSelf: "flex-end", borderTopLeftRadius: 16, borderTopRightRadius: 4 },
     chatText: { fontSize: 13, color: "#2D2D2D", lineHeight: 18 },
-    sectionDividerTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: "#2D2D2D",
-        textAlign: "center",
-        marginBottom: 24,
-    },
-    featuresGrid: {
-        gap: 16,
-        marginBottom: 60,
-    },
-    featuresGridWeb: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-    },
+    sectionDividerTitle: { fontSize: 18, fontWeight: "700", color: "#2D2D2D", textAlign: "center", marginBottom: 24 },
+    featuresGrid: { gap: 16, marginBottom: 60 },
+    featuresGridWeb: { flexDirection: "row", justifyContent: "space-between" },
     featureItem: {
         flex: 1,
         backgroundColor: "rgba(255,255,255,0.75)",
@@ -465,35 +354,13 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "rgba(255,255,255,0.5)",
     },
-    iconWrapper: {
-        width: 48,
-        height: 48,
-        borderRadius: 14,
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: 16,
-    },
-    featureTitle: {
-        fontSize: 16,
-        fontWeight: "700",
-        color: "#2D2D2D",
-        marginBottom: 8,
-    },
+    iconWrapper: { width: 48, height: 48, borderRadius: 14, justifyContent: "center", alignItems: "center", marginBottom: 16 },
+    featureTitle: { fontSize: 16, fontWeight: "700", color: "#2D2D2D", marginBottom: 8 },
     featureDesc: { fontSize: 13, color: "#5A5A5A", lineHeight: 20 },
-    footer: {
-        borderTopWidth: 1,
-        borderColor: "rgba(0,0,0,0.06)",
-        paddingTop: 24,
-        alignItems: "center",
-        gap: 12,
-    },
+    footer: { borderTopWidth: 1, borderColor: "rgba(0,0,0,0.06)", paddingTop: 24, alignItems: "center", gap: 12 },
     footerBrand: { fontSize: 13, color: "#7A7A7A" },
-    footerLinks: {
-        flexDirection: "row",
-        alignItems: "center",
-        flexWrap: "wrap",
-        justifyContent: "center",
-    },
+    footerLinks: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", justifyContent: "center" },
     footerLinkText: { fontSize: 13, color: "#E87A90", fontWeight: "600" },
     footerDivider: { marginHorizontal: 8, color: "#7A7A7A" },
+
 });
