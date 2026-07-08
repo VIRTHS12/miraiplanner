@@ -12,7 +12,20 @@ import {
     ActivityIndicator,
     useWindowDimensions,
 } from "react-native";
-import { Feather, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";import { BlurView } from "expo-blur";
+// ✅ Menggunakan komponen murni SVG Lucide Icons secara menyeluruh
+import { 
+    LogOut, 
+    Calendar, 
+    Clock, 
+    Flower, 
+    ChevronRight, 
+    Briefcase, 
+    Activity, 
+    BookOpen,
+    CheckCircle,
+    BarChart3
+} from "lucide-react-native";
+import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, router, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -93,8 +106,6 @@ export default function HomeScreen() {
             if (jsonEvents.status === "success" && Array.isArray(jsonEvents.data)) {
                 const now = new Date();
                 const todayFormatted = now.toISOString().split("T")[0];
-
-                // 📅 Ambil String "YYYY-MM" Bulan Ini untuk filter summary
                 const currentMonthPrefix = todayFormatted.substring(0, 7);
 
                 // 1. Filter untuk Jadwal Hari Ini
@@ -103,7 +114,7 @@ export default function HomeScreen() {
                 );
                 setEvents(todaysEvents);
 
-                // 2. 🔥 KUNCI UTAMA: Filter data khusus untuk bulan ini saja sebelum menghitung summary
+                // 2. Filter data khusus untuk bulan ini saja sebelum menghitung summary
                 const monthlyEvents = jsonEvents.data.filter((item: any) =>
                     item.start_time?.startsWith(currentMonthPrefix),
                 );
@@ -135,13 +146,14 @@ export default function HomeScreen() {
         router.replace("/login");
     };
 
+    // ✅ Render Ikon Dinamis Menggunakan Lucide SVG Components
     const getEventIcon = (title: string) => {
         const t = title.toLowerCase();
         if (t.includes("rapat") || t.includes("meeting") || t.includes("kerja"))
-            return <Feather name="briefcase" size={20} color={PINK_PRIMARY} />;
+            return <Briefcase size={20} color={PINK_PRIMARY} />;
         if (t.includes("olahraga") || t.includes("gym") || t.includes("run"))
-            return <FontAwesome5 name="running" size={20} color="#8E69E8" />;
-        return <Feather name="book" size={20} color="#2196F3" />;
+            return <Activity size={20} color="#8E69E8" />;
+        return <BookOpen size={20} color="#2196F3" />;
     };
 
     const getIconBg = (title: string) => {
@@ -168,16 +180,13 @@ export default function HomeScreen() {
         <View style={[styles.card, isLargeScreen && styles.cardWeb]}>
             <View style={styles.sectionHeader}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Feather name="calendar" size={18} color={TEXT_DARK} />
+                    {/* ✅ Ganti Feather calendar */}
+                    <Calendar size={18} color={TEXT_DARK} />
                     <Text style={styles.sectionTitle}>Jadwal Hari Ini</Text>
                 </View>
                 <View style={styles.dateBadge}>
-                    <Feather
-                        name="clock"
-                        size={12}
-                        color={PINK_PRIMARY}
-                        style={{ marginRight: 4 }}
-                    />
+                    {/* ✅ Ganti Feather clock */}
+                    <Clock size={12} color={PINK_PRIMARY} style={{ marginRight: 4 }} />
                     <Text style={styles.dateBadgeText}>
                         {new Date().toLocaleDateString("id-ID", {
                             day: "numeric",
@@ -190,11 +199,8 @@ export default function HomeScreen() {
 
             {events.length === 0 ? (
                 <View style={styles.emptyCard}>
-                    <MaterialCommunityIcons
-                        name="calendar-blank-outline"
-                        size={32}
-                        color={PINK_PRIMARY}
-                    />
+                    {/* ✅ Ganti MaterialCommunityIcons calendar-blank-outline */}
+                    <Calendar size={32} color={PINK_PRIMARY} />
                     <Text style={styles.emptyText}>Tidak ada jadwal untuk hari ini.</Text>
                 </View>
             ) : (
@@ -220,11 +226,8 @@ export default function HomeScreen() {
                                 </Text>
                             </View>
                             <View style={styles.sourceTag}>
-                                <MaterialCommunityIcons
-                                    name="google"
-                                    size={12}
-                                    color="#DB4437"
-                                />
+                                {/* ✅ Ganti Google Brand ke Calendar SVG mini */}
+                                <Calendar size={12} color="#DB4437" />
                                 <Text style={styles.sourceText}>Synced</Text>
                             </View>
                         </View>
@@ -238,33 +241,32 @@ export default function HomeScreen() {
         <View style={[styles.card, isLargeScreen && styles.cardWeb]}>
             <View style={[styles.sectionHeader, { marginBottom: 20 }]}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <MaterialCommunityIcons
-                        name="chart-timeline-variant"
-                        size={20}
-                        color={PINK_PRIMARY}
-                    />
-                    {/* Ubah Title menjadi Bulan Ini */}
+                    {/* ✅ Ganti MaterialCommunityIcons chart-timeline-variant */}
+                    <BarChart3 size={20} color={PINK_PRIMARY} />
                     <Text style={styles.sectionTitle}>Ringkasan Bulan Ini</Text>
                 </View>
             </View>
             <View style={styles.summaryRow}>
                 <View style={styles.summaryItem}>
                     <View style={[styles.summaryIconBox, { backgroundColor: "#FCE4E8" }]}>
-                        <Feather name="calendar" size={18} color={PINK_PRIMARY} />
+                        {/* ✅ Ganti Feather calendar */}
+                        <Calendar size={18} color={PINK_PRIMARY} />
                     </View>
                     <Text style={styles.summaryNumber}>{weeklyStats.total}</Text>
                     <Text style={styles.summaryLabel}>Total Jadwal</Text>
                 </View>
                 <View style={styles.summaryItem}>
                     <View style={[styles.summaryIconBox, { backgroundColor: "#EFE5FD" }]}>
-                        <Feather name="check-circle" size={18} color="#8E69E8" />
+                        {/* ✅ Ganti Feather check-circle */}
+                        <CheckCircle size={18} color="#8E69E8" />
                     </View>
                     <Text style={styles.summaryNumber}>{weeklyStats.aktif}</Text>
                     <Text style={styles.summaryLabel}>Aktif</Text>
                 </View>
                 <View style={styles.summaryItem}>
                     <View style={[styles.summaryIconBox, { backgroundColor: "#E3F2FD" }]}>
-                        <Feather name="clock" size={18} color="#2196F3" />
+                        {/* ✅ Ganti Feather clock */}
+                        <Clock size={18} color="#2196F3" />
                     </View>
                     <Text style={styles.summaryNumber}>{weeklyStats.selesai}</Text>
                     <Text style={styles.summaryLabel}>Selesai</Text>
@@ -306,7 +308,8 @@ export default function HomeScreen() {
                             {/* Header */}
                             <View style={styles.header}>
                                 <TouchableOpacity onPress={handleLogout}>
-                                    <Feather name="log-out" size={24} color={TEXT_DARK} />
+                                    {/* ✅ Ganti Feather log-out */}
+                                    <LogOut size={24} color={TEXT_DARK} />
                                 </TouchableOpacity>
                             </View>
 
@@ -328,11 +331,8 @@ export default function HomeScreen() {
                                         <Text style={styles.nameText}>
                                             {userData?.name || "Raihan"}{" "}
                                         </Text>
-                                        <MaterialCommunityIcons
-                                            name="flower"
-                                            size={30}
-                                            color={PINK_PRIMARY}
-                                        />
+                                        {/* ✅ Ganti MaterialCommunityIcons flower */}
+                                        <Flower size={30} color={PINK_PRIMARY} />
                                     </View>
                                     <Text style={styles.subtitleText}>
                                         Mirai Planner siap membantu menyusun rencana terbaikmu hari
@@ -349,11 +349,7 @@ export default function HomeScreen() {
                                     <View style={styles.aiCard}>
                                         <View style={styles.aiHeader}>
                                             <View style={styles.aiIconBg}>
-                                                <MaterialCommunityIcons
-                                                    name="flower"
-                                                    size={24}
-                                                    color={PINK_PRIMARY}
-                                                />
+                                                <Flower size={24} color={PINK_PRIMARY} />
                                             </View>
                                             <View style={{ flex: 1, marginLeft: 14 }}>
                                                 <Text style={styles.aiTitle}>AI Planner Assistant</Text>
@@ -368,7 +364,8 @@ export default function HomeScreen() {
                                             onPress={() => router.push("/chatscreen")}
                                         >
                                             <Text style={styles.aiButtonText}>Mulai Chat</Text>
-                                            <Feather name="chevron-right" size={20} color="#FFF" />
+                                            {/* ✅ Ganti Feather chevron-right */}
+                                            <ChevronRight size={20} color="#FFF" />
                                         </TouchableOpacity>
                                     </View>
                                 </View>

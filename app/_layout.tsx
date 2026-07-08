@@ -9,17 +9,12 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { useFonts } from "expo-font";
-import Feather from "@expo/vector-icons/Feather";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+
+// ✅ HAPUS TOTAL: importuseFonts, Feather, dan MaterialCommunityIcons font biner yang bikin error di cloud
+
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const [clientReady, setClientReady] = useState(false);
-
-    const [loaded] = useFonts({
-        ...Feather.font,
-        ...MaterialCommunityIcons.font,
-    });
 
     useEffect(() => {
         setClientReady(true);
@@ -40,7 +35,8 @@ export default function RootLayout() {
         }
     }, []);
 
-    if (!clientReady || !loaded) {
+    // ✅ Jauh lebih ringkas, tidak perlu nunggu load font biner `.ttf` selesai!
+    if (!clientReady) {
         return null;
     }
 

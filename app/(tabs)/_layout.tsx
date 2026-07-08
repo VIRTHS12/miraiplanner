@@ -1,7 +1,9 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
-import { Feather, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
+// ✅ Ganti murni ke SVG Lucide Components
+import { Home, Calendar, MessageCircle, User } from "lucide-react-native";
+
 export default function TabsLayout() {
     const PINK_PRIMARY = "#E87A90";
     const TEXT_LIGHT = "#888888";
@@ -12,7 +14,6 @@ export default function TabsLayout() {
                 headerShown: false,
             }}
             tabBar={({ state, navigation }) => {
-                // Ambil nama rute yang aktif saat ini
                 const activeRoute = state.routes[state.index].name;
 
                 const handleNavigate = (routeName: string) => {
@@ -22,17 +23,16 @@ export default function TabsLayout() {
                 return (
                     <View style={styles.bottomNavContainer}>
                         <View style={styles.bottomNav}>
-                            {/* Tombol Beranda - Diarahkan ke rute 'home' */}
+                            {/* Tombol Beranda */}
                             <TouchableOpacity
                                 style={styles.navItem}
                                 onPress={() => handleNavigate("home")}
                             >
-                                <MaterialCommunityIcons
-                                    name="home-variant"
-                                    size={28}
+                                {/* ✅ Ganti ke Lucide Home */}
+                                <Home
+                                    size={24}
                                     color={activeRoute === "home" ? PINK_PRIMARY : TEXT_LIGHT}
-                                />{" "}
-                                Dad
+                                />
                                 <Text
                                     style={[
                                         styles.navText,
@@ -48,8 +48,8 @@ export default function TabsLayout() {
                                 style={styles.navItem}
                                 onPress={() => handleNavigate("calendar")}
                             >
-                                <Feather
-                                    name="calendar"
+                                {/* ✅ Ganti ke Lucide Calendar */}
+                                <Calendar
                                     size={24}
                                     color={activeRoute === "calendar" ? PINK_PRIMARY : TEXT_LIGHT}
                                 />
@@ -63,12 +63,13 @@ export default function TabsLayout() {
                                 </Text>
                             </TouchableOpacity>
 
-                            {/* Tombol Chat (Pindah ke screen di luar tab group agar fullscreen) */}
+                            {/* Tombol Chat */}
                             <TouchableOpacity
                                 style={styles.navItem}
                                 onPress={() => navigation.navigate("chatscreen")}
                             >
-                                <Feather name="message-circle" size={24} color={TEXT_LIGHT} />
+                                {/* ✅ Ganti ke Lucide MessageCircle */}
+                                <MessageCircle size={24} color={TEXT_LIGHT} />
                                 <Text style={styles.navText}>Chat</Text>
                             </TouchableOpacity>
 
@@ -77,8 +78,8 @@ export default function TabsLayout() {
                                 style={styles.navItem}
                                 onPress={() => handleNavigate("profile")}
                             >
-                                <Feather
-                                    name="user"
+                                {/* ✅ Ganti ke Lucide User */}
+                                <User
                                     size={24}
                                     color={activeRoute === "profile" ? PINK_PRIMARY : TEXT_LIGHT}
                                 />
@@ -96,7 +97,6 @@ export default function TabsLayout() {
                 );
             }}
         >
-            {/* Definisikan daftar tab yang tersedia sesuai hierarki foldermu */}
             <Tabs.Screen name="home" options={{ title: "Beranda" }} />
             <Tabs.Screen name="calendar" options={{ title: "Kalender" }} />
             <Tabs.Screen name="profile" options={{ title: "Profil" }} />
@@ -129,5 +129,5 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     navItem: { alignItems: "center", justifyContent: "center", flex: 1 },
-    navText: { fontSize: 10, marginTop: 4, color: "#888" },
+    navText: { fontSize: 10, marginTop: 4, color: "#888", fontWeight: "600" },
 });

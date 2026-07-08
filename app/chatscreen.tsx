@@ -12,7 +12,21 @@ import {
     Platform,
     ActivityIndicator,
 } from "react-native";
-import { Feather, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";import { useFocusEffect, router, useLocalSearchParams } from "expo-router";
+// ✅ Migrasi total ke murni SVG Lucide Icons
+import { 
+    Calendar as LucideCalendar, 
+    Clock, 
+    ChevronLeft, 
+    Flower, 
+    MoreHorizontal, 
+    Briefcase, 
+    Check,
+    CheckCheck,
+    Paperclip, 
+    XCircle, 
+    Send 
+} from "lucide-react-native";
+import { useFocusEffect, router, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../constants/Config";
 
@@ -25,6 +39,12 @@ const THEME = {
     textGray: "#757575",
     textLight: "#A0A0A0",
     border: "#F0F0F0",
+};
+
+// Map untuk render icon quick action secara dinamis tanpa strings error
+const QUICK_ACTION_ICONS: Record<string, React.ComponentType<any>> = {
+    calendar: LucideCalendar,
+    clock: Clock,
 };
 
 const QUICK_ACTIONS = [
@@ -71,7 +91,7 @@ export default function ChatScreen() {
 
     // 📜 1. LOAD HISTORY CHAT
     useFocusEffect(
-        useCallback(() => {
+        `useCallback`(() => {
             let isMounted = true;
             const loadChatHistory = async () => {
                 try {
@@ -160,9 +180,8 @@ export default function ChatScreen() {
 
             const json = await response.json();
 
-            // 🔥 SEKARANG LOGIKA SUKSES & CLASH (BENTROK) KITA JADIKAN SATU ALUR CHAT
+            // 🔥 LOGIKA SUKSES & CLASH (BENTROK) KITA JADIKAN SATU ALUR CHAT
             if (response.status === 200 && json.status === "success") {
-                // Jika sukses membuat/mengubah jadwal
                 const aiMessage: MessageItem = {
                     role: "assistant",
                     content:
@@ -172,18 +191,16 @@ export default function ChatScreen() {
                 };
                 setMessages((prev) => [...prev, aiMessage]);
             } else if (response.status === 409 || json.status === "error") {
-                // 🔥 SUNTIK LANGSUNG KATA BENTROK KE BUBBLE CHAT AI TANPA POP-UP ALERT
                 const aiClashMessage: MessageItem = {
                     role: "assistant",
                     content:
                         json.message ||
                         `Waduh brok, jadwalnya bentrok nih sama agenda lain. Coba cek lagi deh! 🛑`,
                     created_at: new Date().toISOString(),
-                    event_data: null, // Jangan tampilin card schedule kalau gagal/bentrok
+                    event_data: null,
                 };
                 setMessages((prev) => [...prev, aiClashMessage]);
             } else {
-                // Eror sistem fatal lainnya (misal token habis/server mati) baru boleh alert biasa
                 alert(`❌ Gagal: ${json.message}`);
             }
         } catch (err) {
@@ -208,23 +225,22 @@ export default function ChatScreen() {
                     activeOpacity={0.7}
                     onPress={() => router.replace("/")}
                 >
-                    <Feather name="chevron-left" size={24} color={THEME.textDark} />
+                    {/* ✅ Ganti Feather name="chevron-left" */}
+                    <ChevronLeft size={24} color={THEME.textDark} />
                 </TouchableOpacity>
 
                 <View style={styles.headerTitleContainer}>
                     <Text style={styles.headerTitle}>
                         Mirai Planner{" "}
-                        <MaterialCommunityIcons
-                            name="flower"
-                            size={16}
-                            color={THEME.primary}
-                        />
+                        {/* ✅ Ganti MaterialCommunityIcons name="flower" */}
+                        <Flower size={16} color={THEME.primary} />
                     </Text>
                     <Text style={styles.headerSubtitle}>AI Assistant</Text>
                 </View>
 
                 <TouchableOpacity style={styles.headerIcon} activeOpacity={0.7}>
-                    <Feather name="more-horizontal" size={24} color={THEME.textDark} />
+                    {/* ✅ Ganti Feather name="more-horizontal" */}
+                    <MoreHorizontal size={24} color={THEME.textDark} />
                 </TouchableOpacity>
             </View>
 
@@ -270,18 +286,15 @@ export default function ChatScreen() {
                             >
                                 {!isUser && (
                                     <View style={styles.aiAvatar}>
-                                        <MaterialCommunityIcons
-                                            name="flower"
-                                            size={22}
-                                            color={THEME.surface}
-                                        />
+                                        {/* ✅ Ganti MaterialCommunityIcons flower avatar */}
+                                        <Flower size={18} color={THEME.surface} />
                                     </View>
                                 )}
 
                                 <View style={isUser ? styles.userBubble : styles.aiBubble}>
                                     <Text style={styles.messageText}>{msg.content}</Text>
 
-                                    {/* 📅 DIGITAL CARD ATTACHMENT (Berlaku untuk Bubble User maupun Bubble AI) */}
+                                    {/* 📅 DIGITAL CARD ATTACHMENT */}
                                     {msg.event_data && (
                                         <View
                                             style={[
@@ -291,11 +304,8 @@ export default function ChatScreen() {
                                         >
                                             <View style={styles.scheduleCardHeader}>
                                                 <View style={styles.iconBox}>
-                                                    <Feather
-                                                        name="briefcase"
-                                                        size={18}
-                                                        color={THEME.primary}
-                                                    />
+                                                    {/* ✅ Ganti Feather name="briefcase" */}
+                                                    <Briefcase size={18} color={THEME.primary} />
                                                 </View>
                                                 <View style={styles.scheduleInfo}>
                                                     <Text style={styles.scheduleTitle} numberOfLines={1}>
@@ -326,11 +336,8 @@ export default function ChatScreen() {
                                                 </View>
                                             </View>
                                             <View style={styles.sourceTag}>
-                                                <MaterialCommunityIcons
-                                                    name="google"
-                                                    size={14}
-                                                    color="#DB4437"
-                                                />
+                                                {/* ✅ Ganti MaterialCommunityIcons name="google" -> Menggunakan text atau ikon kalender kecil */}
+                                                <LucideCalendar size={14} color="#DB4437" />
                                                 <Text style={styles.sourceText}>Attached Agenda</Text>
                                             </View>
                                         </View>
@@ -343,12 +350,7 @@ export default function ChatScreen() {
                                     >
                                         <Text style={styles.timestampText}>{timeString}</Text>
                                         {isUser && (
-                                            <MaterialCommunityIcons
-                                                name="check-all"
-                                                size={14}
-                                                color={THEME.primary}
-                                                style={styles.readIcon}
-                                            />
+                                           <CheckCheck size={14} color={THEME.primary} style={styles.readIcon} />
                                         )}
                                     </View>
                                 </View>
@@ -359,11 +361,7 @@ export default function ChatScreen() {
                     {sendLoading && (
                         <View style={styles.aiMessageWrapper}>
                             <View style={styles.aiAvatar}>
-                                <MaterialCommunityIcons
-                                    name="flower"
-                                    size={22}
-                                    color={THEME.surface}
-                                />
+                                <Flower size={18} color={THEME.surface} />
                             </View>
                             <View style={[styles.aiBubble, styles.loadingBubble]}>
                                 <ActivityIndicator size="small" color={THEME.primary} />
@@ -382,11 +380,8 @@ export default function ChatScreen() {
                 {attachedEvent && (
                     <View style={styles.attachmentPreviewContainer}>
                         <View style={styles.attachmentPreviewCard}>
-                            <MaterialCommunityIcons
-                                name="paperclip"
-                                size={20}
-                                color={THEME.primary}
-                            />
+                            {/* ✅ Ganti MaterialCommunityIcons name="paperclip" */}
+                            <Paperclip size={20} color={THEME.primary} />
                             <View style={{ flex: 1, marginLeft: 8 }}>
                                 <Text style={styles.attachmentPreviewTitle} numberOfLines={1}>
                                     Lampiran: {attachedEvent.title}
@@ -402,7 +397,8 @@ export default function ChatScreen() {
                                 }}
                                 style={{ padding: 4 }}
                             >
-                                <Feather name="x-circle" size={18} color={THEME.textGray} />
+                                {/* ✅ Ganti Feather name="x-circle" */}
+                                <XCircle size={18} color={THEME.textGray} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -433,12 +429,8 @@ export default function ChatScreen() {
                             onPress={() => handleSendMessage(inputText)}
                             disabled={(!inputText.trim() && !attachedEvent) || sendLoading}
                         >
-                            <MaterialCommunityIcons
-                                name="send"
-                                size={18}
-                                color={THEME.surface}
-                                style={styles.sendIcon}
-                            />
+                            {/* ✅ Ganti MaterialCommunityIcons name="send" */}
+                            <Send size={18} color={THEME.surface} style={styles.sendIcon} />
                         </TouchableOpacity>
                     </View>
 
@@ -447,22 +439,23 @@ export default function ChatScreen() {
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={styles.chipsContainer}
                     >
-                        {QUICK_ACTIONS.map((action) => (
-                            <TouchableOpacity
-                                key={action.id}
-                                style={styles.chip}
-                                activeOpacity={0.6}
-                                onPress={() => !sendLoading && handleSendMessage(action.label)}
-                                disabled={sendLoading}
-                            >
-                                <Feather
-                                    name={action.icon as any}
-                                    size={14}
-                                    color={THEME.primary}
-                                />
-                                <Text style={styles.chipText}>{action.label}</Text>
-                            </TouchableOpacity>
-                        ))}
+                        {QUICK_ACTIONS.map((action) => {
+                            // Ambil komponen icon murni berdasarkan key-nya
+                            const ActionIcon = QUICK_ACTION_ICONS[action.icon] || Clock;
+                            return (
+                                <TouchableOpacity
+                                    key={action.id}
+                                    style={styles.chip}
+                                    activeOpacity={0.6}
+                                    onPress={() => !sendLoading && handleSendMessage(action.label)}
+                                    disabled={sendLoading}
+                                >
+                                    {/* ✅ Render Icon murni secara dinamis */}
+                                    <ActionIcon size={14} color={THEME.primary} />
+                                    <Text style={styles.chipText}>{action.label}</Text>
+                                </TouchableOpacity>
+                            );
+                        })}
                     </ScrollView>
                 </View>
             </KeyboardAvoidingView>
@@ -696,8 +689,6 @@ const styles = StyleSheet.create({
         marginLeft: 6,
         fontWeight: "600",
     },
-
-    // 📎 STYLE BARU UNTUK ATTACHMENT PREVIEW BOX
     attachmentPreviewContainer: {
         paddingHorizontal: 16,
         paddingTop: 10,

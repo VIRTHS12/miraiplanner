@@ -11,7 +11,16 @@ import {
     Platform,
     ActivityIndicator,
 } from "react-native";
-import { Feather, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";import { BlurView } from "expo-blur";
+// ✅ Migrasi total menggunakan komponen SVG murni Lucide
+import { 
+    ChevronLeft, 
+    Calendar, 
+    User, 
+    Mail, 
+    Shield, 
+    LogOut 
+} from "lucide-react-native";
+import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -32,7 +41,7 @@ export default function ProfileScreen() {
 
     // 🧠 SYNC DATA PROFILE SECARA REAL-TIME DARI STORAGE
     useFocusEffect(
-        useCallback(() => {
+        `useCallback`(() => {
             const loadProfileData = async () => {
                 try {
                     setLoading(true);
@@ -83,7 +92,6 @@ export default function ProfileScreen() {
         );
     }
 
-    // Ambil inisial huruf buat avatar (misal: "Raihan Akbar" -> "R")
     const getInitial = (name: string) => {
         return name ? name.charAt(0).toUpperCase() : "U";
     };
@@ -117,11 +125,11 @@ export default function ProfileScreen() {
                                 style={styles.iconButton}
                                 onPress={() => router.back()}
                             >
-                                <Feather name="chevron-left" size={24} color={THEME.textDark} />
+                                {/* ✅ Ganti Feather chevron-left */}
+                                <ChevronLeft size={24} color={THEME.textDark} />
                             </TouchableOpacity>
                             <Text style={styles.headerTitle}>Profil Saya</Text>
-                            <View style={{ width: 40 }} />{" "}
-                            {/* Spacer penyeimbang back button */}
+                            <View style={{ width: 40 }} />
                         </View>
 
                         <ScrollView
@@ -140,11 +148,8 @@ export default function ProfileScreen() {
                                         </Text>
                                     </LinearGradient>
                                     <View style={styles.googleBadge}>
-                                        <MaterialCommunityIcons
-                                            name="google"
-                                            size={12}
-                                            color="#FFF"
-                                        />
+                                        {/* ✅ Ganti Google Brand ke Calendar SVG Mini */}
+                                        <Calendar size={12} color="#FFF" />
                                     </View>
                                 </View>
                                 <Text style={styles.nameText}>
@@ -160,12 +165,8 @@ export default function ProfileScreen() {
                             <View style={styles.infoBox}>
                                 <View style={styles.infoRow}>
                                     <View style={styles.infoLeft}>
-                                        <Feather
-                                            name="user"
-                                            size={18}
-                                            color={THEME.primary}
-                                            style={styles.rowIcon}
-                                        />
+                                        {/* ✅ Ganti Feather user */}
+                                        <User size={18} color={THEME.primary} style={styles.rowIcon} />
                                         <Text style={styles.rowLabel}>Nama Lengkap</Text>
                                     </View>
                                     <Text style={styles.rowValue} numberOfLines={1}>
@@ -177,12 +178,8 @@ export default function ProfileScreen() {
 
                                 <View style={styles.infoRow}>
                                     <View style={styles.infoLeft}>
-                                        <Feather
-                                            name="mail"
-                                            size={18}
-                                            color={THEME.primary}
-                                            style={styles.rowIcon}
-                                        />
+                                        {/* ✅ Ganti Feather mail */}
+                                        <Mail size={18} color={THEME.primary} style={styles.rowIcon} />
                                         <Text style={styles.rowLabel}>Email</Text>
                                     </View>
                                     <Text style={styles.rowValue} numberOfLines={1}>
@@ -194,12 +191,8 @@ export default function ProfileScreen() {
 
                                 <View style={styles.infoRow}>
                                     <View style={styles.infoLeft}>
-                                        <Feather
-                                            name="shield"
-                                            size={18}
-                                            color={THEME.primary}
-                                            style={styles.rowIcon}
-                                        />
+                                        {/* ✅ Ganti Feather shield */}
+                                        <Shield size={18} color={THEME.primary} style={styles.rowIcon} />
                                         <Text style={styles.rowLabel}>Tipe Akun</Text>
                                     </View>
                                     <View style={styles.badgeActive}>
@@ -208,20 +201,14 @@ export default function ProfileScreen() {
                                 </View>
                             </View>
 
-                            {/* PREFERENCES SECTION */}
-
                             {/* LOGOUT BUTTON */}
                             <TouchableOpacity
                                 style={styles.logoutButton}
                                 onPress={handleLogout}
                                 activeOpacity={0.8}
                             >
-                                <Feather
-                                    name="log-out"
-                                    size={20}
-                                    color="#FFF"
-                                    style={{ marginRight: 8 }}
-                                />
+                                {/* ✅ Ganti Feather log-out */}
+                                <LogOut size={20} color="#FFF" style={{ marginRight: 8 }} />
                                 <Text style={styles.logoutButtonText}>Keluar dari Akun</Text>
                             </TouchableOpacity>
 
@@ -324,12 +311,6 @@ const styles = StyleSheet.create({
         ...shadowStyle,
     },
     infoRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingVertical: 14,
-    },
-    menuRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",

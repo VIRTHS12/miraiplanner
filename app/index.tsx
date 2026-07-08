@@ -12,7 +12,16 @@ import {
     useWindowDimensions,
     ActivityIndicator,
 } from "react-native";
-import { Feather, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons"
+// ✅ Migrasi total dari @expo/vector-icons ke komponen murni SVG Lucide
+import { 
+    Flower, 
+    Sparkles, 
+    ArrowRight, 
+    Bot, 
+    Calendar, 
+    Brain, 
+    TrendingUp 
+} from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
 import { router } from "expo-router";
@@ -101,11 +110,8 @@ export default function LandingScreen() {
                             <View style={styles.navbar}>
                                 <View style={styles.logoRow}>
                                     <View style={styles.miniLogoBg}>
-                                        <MaterialCommunityIcons
-                                            name="flower"
-                                            size={20}
-                                            color={PINK_PRIMARY}
-                                        />
+                                        {/* ✅ Menggunakan Lucide Flower */}
+                                        <Flower size={20} color={PINK_PRIMARY} />
                                     </View>
                                     <Text style={styles.brandName}>Mirai Planner</Text>
                                 </View>
@@ -132,11 +138,11 @@ export default function LandingScreen() {
                                     ]}
                                 >
                                     <View style={styles.badge}>
-                                        <MaterialCommunityIcons
-                                            name="sparkles"
-                                            size={14}
-                                            color={PINK_PRIMARY}
-                                            style={{ marginRight: 6 }}
+                                        {/* ✅ Menggunakan Lucide Sparkles */}
+                                        <Sparkles 
+                                            size={14} 
+                                            color={PINK_PRIMARY} 
+                                            style={{ marginRight: 6 }} 
                                         />
                                         <Text style={styles.badgeText}>
                                             Smart Calendar Assistant
@@ -170,7 +176,8 @@ export default function LandingScreen() {
                                         <Text style={styles.ctaButtonText}>
                                             Mulai Sekarang gratis
                                         </Text>
-                                        <Feather name="arrow-right" size={18} color="#FFF" />
+                                        {/* ✅ Menggunakan Lucide ArrowRight */}
+                                        <ArrowRight size={18} color="#FFF" />
                                     </TouchableOpacity>
                                 </View>
 
@@ -183,11 +190,8 @@ export default function LandingScreen() {
                                 >
                                     <View style={styles.previewCard}>
                                         <View style={styles.previewHeader}>
-                                            <MaterialCommunityIcons
-                                                name="robot"
-                                                size={22}
-                                                color={PINK_PRIMARY}
-                                            />
+                                            {/* ✅ Menggunakan Lucide Bot */}
+                                            <Bot size={22} color={PINK_PRIMARY} />
                                             <Text style={styles.previewTitle}>
                                                 AI Planner Assistant
                                             </Text>
@@ -222,11 +226,8 @@ export default function LandingScreen() {
                                     <View
                                         style={[styles.iconWrapper, { backgroundColor: "#FCE4E8" }]}
                                     >
-                                        <MaterialCommunityIcons
-                                            name="google-calendar"
-                                            size={24}
-                                            color={PINK_PRIMARY}
-                                        />
+                                        {/* ✅ Menggunakan Lucide Calendar */}
+                                        <Calendar size={24} color={PINK_PRIMARY} />
                                     </View>
                                     <Text style={styles.featureTitle}>Google Calendar Sync</Text>
                                     <Text style={styles.featureDesc}>
@@ -239,11 +240,8 @@ export default function LandingScreen() {
                                     <View
                                         style={[styles.iconWrapper, { backgroundColor: "#EFE5FD" }]}
                                     >
-                                        <MaterialCommunityIcons
-                                            name="brain"
-                                            size={24}
-                                            color="#8E69E8"
-                                        />
+                                        {/* ✅ Menggunakan Lucide Brain */}
+                                        <Brain size={24} color="#8E69E8" />
                                     </View>
                                     <Text style={styles.featureTitle}>Natural AI Processing</Text>
                                     <Text style={styles.featureDesc}>
@@ -256,7 +254,8 @@ export default function LandingScreen() {
                                     <View
                                         style={[styles.iconWrapper, { backgroundColor: "#E3F2FD" }]}
                                     >
-                                        <Feather name="trending-up" size={24} color="#2196F3" />
+                                        {/* ✅ Menggunakan Lucide TrendingUp */}
+                                        <TrendingUp size={24} color="#2196F3" />
                                     </View>
                                     <Text style={styles.featureTitle}>Ringkasan Bulanan</Text>
                                     <Text style={styles.featureDesc}>

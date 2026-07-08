@@ -11,7 +11,7 @@ import {
   Platform,
   useWindowDimensions,
 } from "react-native";
-import { Feather, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons"
+import { X, Flower, LogIn } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
@@ -119,7 +119,8 @@ export default function LoginScreen() {
       <SafeAreaView style={{ flex: 1, backgroundColor: "#FFF" }}>
         <StatusBar barStyle="dark-content" />
         <TouchableOpacity style={styles.closeButton} onPress={() => setShowWebView(false)}>
-          <MaterialCommunityIcons name="close" size={24} color="#333" />
+          {/* ✅ Ganti MaterialCommunityIcons close -> X */}
+          <X size={24} color="#333" />
           <Text style={{ fontWeight: "600", marginLeft: 4 }}>Batal</Text>
         </TouchableOpacity>
         <WebView
@@ -172,7 +173,8 @@ export default function LoginScreen() {
 
             <View style={styles.brandContainer}>
               <View style={styles.logoBg}>
-                <MaterialCommunityIcons name="flower" size={48} color="#E87A90" />
+                {/* ✅ Ganti MaterialCommunityIcons flower -> Flower */}
+                <Flower size={48} color="#E87A90" />
               </View>
               <Text style={styles.titleText}>Mirai Planner</Text>
               <Text style={styles.subtitleText}>Smart Calendar AI Assistant</Text>
@@ -180,7 +182,8 @@ export default function LoginScreen() {
 
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.googleButton} onPress={handleLogin}>
-                <MaterialCommunityIcons name="google" size={24} color="#FFF" style={styles.icon} />
+                {/* ✅ Ganti Google Brand Icon ke LogIn SVG murni */}
+                <LogIn size={24} color="#FFF" style={styles.icon} />
                 <Text style={styles.buttonText}>Masuk dengan Google</Text>
               </TouchableOpacity>
 
@@ -192,8 +195,6 @@ export default function LoginScreen() {
     </View>
   );
 }
-
-// ...styles sama persis kayak punya kamu, gak ada yang berubah
 
 const styles = StyleSheet.create({
   backgroundImage: {
