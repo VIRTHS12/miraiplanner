@@ -13,8 +13,17 @@ import {
     ScrollView,
     Modal,
 } from "react-native";
-import Feather from "@react-native-vector-icons/feather";
-import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons";
+// ✅ Migrasi total ke komponen SVG murni Lucide Icons
+import { 
+    ChevronLeft, 
+    Type, 
+    Calendar, 
+    Clock, 
+    Info, 
+    Check, 
+    CheckCircle2, 
+    XCircle 
+} from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../constants/Config";
@@ -91,7 +100,6 @@ export default function EditEventScreen() {
                 setEventId(parsedEvent.id);
                 setTitle(parsedEvent.title || "");
 
-                // Sterilisasi format string datetime agar seragam ke kolom text input
                 const formatTime = (timeStr: string) =>
                     timeStr ? timeStr.replace("T", " ").substring(0, 19) : "";
 
@@ -140,7 +148,7 @@ export default function EditEventScreen() {
                     "Berhasil!",
                     "Agenda kamu sudah diperbarui brok.",
                     () => {
-                        router.back(); // Kick balik ke screen calendar setelah modal ditutup
+                        router.back();
                     },
                 );
             } else {
@@ -173,7 +181,8 @@ export default function EditEventScreen() {
                     onPress={() => router.back()}
                     activeOpacity={0.7}
                 >
-                    <Feather name="chevron-left" size={24} color={THEME.textDark} />
+                    {/* ✅ Ganti Feather name="chevron-left" */}
+                    <ChevronLeft size={24} color={THEME.textDark} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Edit Agenda</Text>
                 <View style={{ width: 40 }} />
@@ -190,7 +199,8 @@ export default function EditEventScreen() {
                     {/* TOP BANNER */}
                     <View style={styles.bannerContainer}>
                         <View style={styles.iconBgBig}>
-                            <Feather name="edit-3" size={48} color={THEME.primary} />
+                            {/* ✅ Ganti Feather name="edit-3" */}
+                            <Calendar size={40} color={THEME.primary} />
                         </View>
                         <Text style={styles.bannerText}>Sesuaikan Rencanamu</Text>
                     </View>
@@ -201,8 +211,8 @@ export default function EditEventScreen() {
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>Nama Agenda</Text>
                             <View style={styles.inputWrapper}>
-                                <Feather
-                                    name="type"
+                                {/* ✅ Ganti Feather name="type" */}
+                                <Type
                                     size={20}
                                     color={THEME.textLight}
                                     style={styles.inputIcon}
@@ -223,8 +233,8 @@ export default function EditEventScreen() {
                                 Waktu Mulai (YYYY-MM-DD HH:MM:SS)
                             </Text>
                             <View style={styles.inputWrapper}>
-                                <Feather
-                                    name="calendar"
+                                {/* ✅ Ganti Feather name="calendar" */}
+                                <Calendar
                                     size={20}
                                     color={THEME.textLight}
                                     style={styles.inputIcon}
@@ -245,8 +255,8 @@ export default function EditEventScreen() {
                                 Waktu Selesai (YYYY-MM-DD HH:MM:SS)
                             </Text>
                             <View style={styles.inputWrapper}>
-                                <Feather
-                                    name="clock"
+                                {/* ✅ Ganti Feather name="clock" */}
+                                <Clock
                                     size={20}
                                     color={THEME.textLight}
                                     style={styles.inputIcon}
@@ -263,8 +273,8 @@ export default function EditEventScreen() {
 
                         {/* INFO FOOTER BOX */}
                         <View style={styles.infoBox}>
-                            <MaterialCommunityIcons
-                                name="information-outline"
+                            {/* ✅ Ganti MaterialCommunityIcons name="information-outline" */}
+                            <Info
                                 size={16}
                                 color={THEME.textGray}
                             />
@@ -289,8 +299,8 @@ export default function EditEventScreen() {
                         <ActivityIndicator color="#FFF" />
                     ) : (
                         <>
-                            <Feather
-                                name="check"
+                            {/* ✅ Ganti Feather name="check" */}
+                            <Check
                                 size={20}
                                 color="#FFF"
                                 style={{ marginRight: 8 }}
@@ -319,13 +329,12 @@ export default function EditEventScreen() {
                                 },
                             ]}
                         >
-                            <Feather
-                                name={
-                                    modalInfo.type === "success" ? "check-circle" : "x-circle"
-                                }
-                                size={32}
-                                color={modalInfo.type === "success" ? "#4CAF50" : "#F44336"}
-                            />
+                            {/* ✅ Logika Ikon murni SVG dinamis */}
+                            {modalInfo.type === "success" ? (
+                                <CheckCircle2 size={32} color="#4CAF50" />
+                            ) : (
+                                <XCircle size={32} color="#F44336" />
+                            )}
                         </View>
                         <Text style={styles.modalTitle}>{modalInfo.title}</Text>
                         <Text style={styles.modalMessage}>{modalInfo.message}</Text>
@@ -473,7 +482,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "700",
     },
-    // STYLING CUSTOM POP-UP MODAL INFO
     modalOverlay: {
         flex: 1,
         backgroundColor: "rgba(0,0,0,0.4)",

@@ -7,9 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "miraiplanner",
     "userInterfaceStyle": "automatic",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
@@ -41,10 +39,7 @@
             "backgroundColor": "#000000"
           }
         }
-      ],
-      "@react-native-vector-icons/feather",
-      "@react-native-vector-icons/fontawesome6",
-      "@react-native-vector-icons/material-design-icons"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
