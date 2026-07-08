@@ -11,8 +11,8 @@ import {
     ActivityIndicator,
     Modal,
 } from "react-native";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
+import Feather from "@react-native-vector-icons/feather";
+import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons";import { BlurView } from "expo-blur";
 import { useFocusEffect, router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../constants/Config";

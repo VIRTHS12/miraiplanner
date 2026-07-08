@@ -1,7 +1,8 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import Feather from "@react-native-vector-icons/feather";
+import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons";
 
 export default function TabsLayout() {
     const PINK_PRIMARY = "#E87A90";
@@ -12,7 +13,6 @@ export default function TabsLayout() {
             screenOptions={{
                 headerShown: false,
             }}
-            // 🔥 KUNCI UTAMA: Inject Navbar Custom lu di sini
             tabBar={({ state, navigation }) => {
                 // Ambil nama rute yang aktif saat ini
                 const activeRoute = state.routes[state.index].name;
@@ -24,44 +24,72 @@ export default function TabsLayout() {
                 return (
                     <View style={styles.bottomNavContainer}>
                         <View style={styles.bottomNav}>
-                            {/* Tombol Beranda */}
-                            <TouchableOpacity style={styles.navItem} onPress={() => handleNavigate("index")}>
+                            {/* Tombol Beranda - Diarahkan ke rute 'home' */}
+                            <TouchableOpacity
+                                style={styles.navItem}
+                                onPress={() => handleNavigate("home")}
+                            >
                                 <MaterialCommunityIcons
                                     name="home-variant"
                                     size={28}
-                                    color={activeRoute === "index" ? PINK_PRIMARY : TEXT_LIGHT}
-                                />
-                                <Text style={[styles.navText, activeRoute === "index" && { color: PINK_PRIMARY }]}>
+                                    color={activeRoute === "home" ? PINK_PRIMARY : TEXT_LIGHT}
+                                />{" "}
+                                Dad
+                                <Text
+                                    style={[
+                                        styles.navText,
+                                        activeRoute === "home" && { color: PINK_PRIMARY },
+                                    ]}
+                                >
                                     Beranda
                                 </Text>
                             </TouchableOpacity>
 
                             {/* Tombol Kalender */}
-                            <TouchableOpacity style={styles.navItem} onPress={() => handleNavigate("calendar")}>
-                                <Feather 
-                                    name="calendar" 
-                                    size={24} 
-                                    color={activeRoute === "calendar" ? PINK_PRIMARY : TEXT_LIGHT} 
+                            <TouchableOpacity
+                                style={styles.navItem}
+                                onPress={() => handleNavigate("calendar")}
+                            >
+                                <Feather
+                                    name="calendar"
+                                    size={24}
+                                    color={activeRoute === "calendar" ? PINK_PRIMARY : TEXT_LIGHT}
                                 />
-                                <Text style={[styles.navText, activeRoute === "calendar" && { color: PINK_PRIMARY }]}>
+                                <Text
+                                    style={[
+                                        styles.navText,
+                                        activeRoute === "calendar" && { color: PINK_PRIMARY },
+                                    ]}
+                                >
                                     Kalender
                                 </Text>
                             </TouchableOpacity>
 
                             {/* Tombol Chat (Pindah ke screen di luar tab group agar fullscreen) */}
-                            <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("chatscreen")}>
+                            <TouchableOpacity
+                                style={styles.navItem}
+                                onPress={() => navigation.navigate("chatscreen")}
+                            >
                                 <Feather name="message-circle" size={24} color={TEXT_LIGHT} />
                                 <Text style={styles.navText}>Chat</Text>
                             </TouchableOpacity>
 
                             {/* Tombol Profil */}
-                            <TouchableOpacity style={styles.navItem} onPress={() => handleNavigate("profile")}>
-                                <Feather 
-                                    name="user" 
-                                    size={24} 
-                                    color={activeRoute === "profile" ? PINK_PRIMARY : TEXT_LIGHT} 
+                            <TouchableOpacity
+                                style={styles.navItem}
+                                onPress={() => handleNavigate("profile")}
+                            >
+                                <Feather
+                                    name="user"
+                                    size={24}
+                                    color={activeRoute === "profile" ? PINK_PRIMARY : TEXT_LIGHT}
                                 />
-                                <Text style={[styles.navText, activeRoute === "profile" && { color: PINK_PRIMARY }]}>
+                                <Text
+                                    style={[
+                                        styles.navText,
+                                        activeRoute === "profile" && { color: PINK_PRIMARY },
+                                    ]}
+                                >
                                     Profil
                                 </Text>
                             </TouchableOpacity>
@@ -70,8 +98,8 @@ export default function TabsLayout() {
                 );
             }}
         >
-            {/* Definisikan daftar tab yang tersedia */}
-            <Tabs.Screen name="index" options={{ title: "Beranda" }} />
+            {/* Definisikan daftar tab yang tersedia sesuai hierarki foldermu */}
+            <Tabs.Screen name="home" options={{ title: "Beranda" }} />
             <Tabs.Screen name="calendar" options={{ title: "Kalender" }} />
             <Tabs.Screen name="profile" options={{ title: "Profil" }} />
         </Tabs>

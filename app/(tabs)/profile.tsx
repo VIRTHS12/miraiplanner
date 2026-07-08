@@ -11,7 +11,8 @@ import {
     Platform,
     ActivityIndicator,
 } from "react-native";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import Feather from "@react-native-vector-icons/feather";
+import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, router } from "expo-router";

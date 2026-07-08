@@ -13,7 +13,8 @@ import {
     ScrollView,
     Modal,
 } from "react-native";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import Feather from "@react-native-vector-icons/feather";
+import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_URL } from "../../constants/Config";
