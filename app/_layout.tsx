@@ -9,18 +9,24 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useFonts } from "expo-font";
+import { Feather } from "@react-native-vector-icons/feather";
+import MaterialCommunityIcons from "@react-native-vector-icons/material-design-icons";
 
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const [clientReady, setClientReady] = useState(false);
+
+    const [loaded] = useFonts({
+        ...Feather,
+        ...MaterialCommunityIcons,
+    });
 
     useEffect(() => {
         setClientReady(true);
 
         if (Platform.OS === "web") {
             document.title = "Mirai Planner";
-
-            // ❌ HAPUS SEMUA FONT INJECTION
 
             const url = new URL(window.location.href);
             if (url.searchParams.has("token")) {
@@ -34,19 +40,16 @@ export default function RootLayout() {
             }
         }
     }, []);
-    // JANGAN render kerangka UI apapun jika client belum siap murni di browser.
-    if (!clientReady) {
+
+    if (!clientReady || !loaded) {
         return null;
     }
 
     return (
         <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
             <Stack>
-                {/* Landing Page Publik */}
                 <Stack.Screen name="index" options={{ headerShown: false }} />
-                {/* Grup Tab Utama Aplikasi */}
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                {/* Autentikasi & Chat */}
                 <Stack.Screen name="login" options={{ headerShown: false }} />
                 <Stack.Screen name="chatscreen" options={{ headerShown: false }} />
                 <Stack.Screen name="modal" options={{ presentation: "modal" }} />
