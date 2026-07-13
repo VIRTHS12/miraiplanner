@@ -130,108 +130,102 @@ export default function ChatScreen() {
 
     // 🤖 2. KIRIM PESAN KE AI + MEMBAWA ATTACHMENT
     const handleSendMessage = async (textToSend: string) => {
-        const msgClean = textToSend.trim();
-        if ((!msgClean && !attachedEvent) || sendLoading) return;
+    const msgClean = textToSend.trim();
+    if ((!msgClean && !attachedEvent) || sendLoading) return;
 
-        setInputText("");
-        setSendLoading(true);
+    setInputText("");
+    setSendLoading(true);
 
-        const currentAttachment = attachedEvent;
-        setAttachedEvent(null);
-        router.setParams({ attachedEvent: undefined });
+    const currentAttachment = attachedEvent;
+    setAttachedEvent(null);
+    router.setParams({ attachedEvent: undefined });
 
-        const eventPayload = currentAttachment
-            ? {
-                title: currentAttachment.title,
-                start: currentAttachment.start_time,
-                end: currentAttachment.end_time,
-            }
-            : null;
-
-        const userTempMessage: MessageItem = {
-            role: "user",
-            content:
-                msgClean || `[Mengirim Lampiran Jadwal: ${currentAttachment?.title}]`,
-            created_at: new Date().toISOString(),
-            event_data: eventPayload,
-        };
-
-        setMessages((prev) => [...prev, userTempMessage]);
-        setTimeout(
-            () => scrollViewRef.current?.scrollToEnd({ animated: true }),
-            100,
-        );
-
-        try {
-            const token = await AsyncStorage.getItem("user_token");
-            const response = await fetch(API_URL.CHAT_SEND, {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    message: msgClean,
-                    attached_event: eventPayload,
-                }),
-            });
-
-            // Ambil body JSON-nya dulu tanpa peduli status HTTP berapa
-            const json = await response.json();
-
-            if (response.ok && json.status === "success") {
-                // 🔥 CASE 1: Sukses Create / Update / Delete via AI
-                const aiMessage: MessageItem = {
-                    role: "assistant",
-                    content: json.message || `Berhasil memproses jadwal lu, brok! ✅`,
-                    created_at: new Date().toISOString(),
-                    event_data: json.data?.event || null,
-                };
-                setMessages((prev) => [...prev, aiMessage]);
-            } else if (
-                response.status === 409 ||
-                json.status === "clash" ||
-                json.message?.includes("bentrok")
-            ) {
-                // 🔥 CASE 2: Jadwal Bentrok (Clash)
-                const aiClashMessage: MessageItem = {
-                    role: "assistant",
-                    content:
-                        json.message ||
-                        `Waduh brok, jadwalnya bentrok nih sama agenda lain. Coba cek lagi deh! 🛑`,
-                    created_at: new Date().toISOString(),
-                    event_data: null,
-                };
-                setMessages((prev) => [...prev, aiClashMessage]);
-            } else {
-                // 🔥 CASE 3: Error response dari Backend PHP (Misal OpenClaw mati / error 500)
-                const aiErrorMessage: MessageItem = {
-                    role: "assistant",
-                    content: `⚠️ Gagal memproses: ${json.message || "Terjadi kesalahan internal pada server backend."}`,
-                    created_at: new Date().toISOString(),
-                    event_data: null,
-                };
-                setMessages((prev) => [...prev, aiErrorMessage]);
-            }
-        } catch (err) {
-            // 🔥 CASE 4: Benar-benar putus koneksi internet / server PHP mati total
-            console.error("Fetch Error:", err);
-            const networkErrorMessage: MessageItem = {
-                role: "assistant",
-                content: `❌ Gagal menghubungi server. Pastikan server PHP backend lu jalan ya, brok.`,
-                created_at: new Date().toISOString(),
-                event_data: null,
-            };
-            setMessages((prev) => [...prev, networkErrorMessage]);
-        } finally {
-            setSendLoading(false);
-            setTimeout(
-                () => scrollViewRef.current?.scrollToEnd({ animated: true }),
-                150,
-            );
+    const eventPayload = currentAttachment
+      ? {
+          title: currentAttachment.title,
+          start: currentAttachment.start_time,
+          end: currentAttachment.end_time,
         }
+      : null;
+
+    const userTempMessage: MessageItem = {
+      role: "user",
+      content: msgClean || `[Mengirim Lampiran Jadwal: ${currentAttachment?.title}]`,
+      created_at: new Date().toISOString(),
+      event_data: eventPayload,
     };
 
+    setMessages((prev) => [...prev, userTempMessage]);
+    setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
+
+    try {
+      const token = await AsyncStorage.getItem("user_token");
+      const response = await fetch(API_URL.CHAT_SEND, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: msgClean,
+          attached_event: eventPayload,
+        }),
+      });
+
+      // Ambil teks mentah dulu untuk jaga-jaga kalau backend tidak mengembalikan JSON
+      const responseText = await response.text();
+      let json: any = {};
+      
+      try {
+        json = JSON.parse(responseText);
+      } catch (e) {
+        // Jika PHP crash/mengeluarkan echo error html biasa
+        throw new Error(responseText || "Server tidak merespon dengan JSON valid.");
+      }
+
+      if (response.ok && json.status === "success") {
+        // 🔥 CASE 1: Sukses Eksekusi Aksi via AI
+        const aiMessage: MessageItem = {
+          role: "assistant",
+          content: json.message || `Berhasil memproses jadwal lu, brok! ✅`,
+          created_at: new Date().toISOString(),
+          event_data: json.data?.event || null,
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+      } else if (response.status === 409 || json.status === "clash" || json.message?.includes("bentrok")) {
+        // 🔥 CASE 2: Jadwal Bentrok (Clash)
+        const aiClashMessage: MessageItem = {
+          role: "assistant",
+          content: json.message || `Waduh brok, jadwalnya bentrok nih sama agenda lain. Coba cek lagi deh! 🛑`,
+          created_at: new Date().toISOString(),
+          event_data: null,
+        };
+        setMessages((prev) => [...prev, aiClashMessage]);
+      } else {
+        // 🔥 CASE 3: Error Terpantau dari Backend PHP
+        const aiErrorMessage: MessageItem = {
+          role: "assistant",
+          content: `⚠️ Gagal memproses: ${json.message || "Terjadi kesalahan pada sistem internal backend."}`,
+          created_at: new Date().toISOString(),
+          event_data: null,
+        };
+        setMessages((prev) => [...prev, aiErrorMessage]);
+      }
+    } catch (err: any) {
+      // 🔥 CASE 4: Jaringan terputus / PHP fatal error ditangkap di sini (Anti Pop-Up Alert!)
+      console.error("Fetch Error:", err);
+      const networkErrorMessage: MessageItem = {
+        role: "assistant",
+        content: `❌ Gagal menghubungi pangkalan server backend. Detail: ${err.message || "Koneksi terputus."}`,
+        created_at: new Date().toISOString(),
+        event_data: null,
+      };
+      setMessages((prev) => [...prev, networkErrorMessage]);
+    } finally {
+      setSendLoading(false);
+      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
+    }
+  };
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor={THEME.surface} />
