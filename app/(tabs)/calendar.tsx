@@ -73,9 +73,7 @@ export default function CalendarScreen() {
 
     const [currentMonthYear, setCurrentMonthYear] = useState("");
     const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
-    const [eventToDelete, setEventToDelete] = useState<string | number | null>(
-        null,
-    );
+    const [eventToDelete, setEventToDelete] = useState<string | number | null>(null);
 
     useEffect(() => {
         const generateDaysInMonth = (referenceDate: Date) => {
@@ -146,6 +144,45 @@ export default function CalendarScreen() {
             console.error(err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // 🔥 FIX 1: BUAT FUNGSI TRIGGER MODAL DELETE NYA BIAR GAK EROR REFERENCE
+    const promptDeleteEvent = (id: string | number) => {
+        setEventToDelete(id);
+        setDeleteModalVisible(true);
+    };
+
+    // 🔥 FIX 2: BUAT FUNGSI EKSEKUSI API DELETE JADWAL KE BACKEND
+    const handleDeleteEvent = async () => {
+        if (!eventToDelete) return;
+        try {
+            const token =
+                Platform.OS === "web"
+                    ? localStorage.getItem("user_token")
+                    : await AsyncStorage.getItem("user_token");
+            
+            if (!token) return;
+
+            // Tembak URL endpoint delete dengan membawa parameter ID lokal
+            const res = await fetch(`${API_URL.CALENDAR_EVENTS}/${eventToDelete}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            });
+
+            const json = await res.json();
+            if (json.status === "success") {
+                // Refresh list data kalender di local state biar card-nya langsung hilang
+                setAllEvents((prev) => prev.filter((evt) => evt.id !== eventToDelete));
+            }
+        } catch (err) {
+            console.error("Gagal mengeksekusi hapus jadwal:", err);
+        } finally {
+            setDeleteModalVisible(false);
+            setEventToDelete(null);
         }
     };
 
@@ -245,55 +282,99 @@ export default function CalendarScreen() {
                         </Text>
                     </View>
                     <ScrollView contentContainerStyle={styles.eventContainer}>
-                        {filteredEvents.map((event, idx) => {
-                            const meta = getEventIcon(event.title);
-                            return (
-                                <View key={idx} style={styles.eventCard}>
-                                    <View style={[styles.iconBox, { backgroundColor: meta.bg }]}>
-                                        {meta.icon}
-                                    </View>
-                                    <View style={styles.eventInfo}>
-                                        <Text style={styles.eventTitle}>{event.title}</Text>
-                                        <View style={styles.timeRow}>
-                                            <Clock size={12} color={THEME.textGray} />
-                                            <Text style={styles.eventTime}>
-                                                {event.start_time?.substring(11, 16)} WIB
-                                            </Text>
+                        {loading ? (
+                            <ActivityIndicator size="small" color={THEME.primary} style={{ marginTop: 20 }} />
+                        ) : filteredEvents.length === 0 ? (
+                            <View style={styles.emptyContainer}>
+                                <Text style={styles.emptyText}>Tidak ada agenda kegiatan hari ini, brok.</Text>
+                            </View>
+                        ) : (
+                            filteredEvents.map((event, idx) => {
+                                const meta = getEventIcon(event.title);
+                                return (
+                                    <View key={idx} style={styles.eventCard}>
+                                        <View style={[styles.iconBox, { backgroundColor: meta.bg }]}>
+                                            {meta.icon}
+                                        </View>
+                                        <View style={styles.eventInfo}>
+                                            <Text style={styles.eventTitle}>{event.title}</Text>
+                                            <View style={styles.timeRow}>
+                                                <Clock size={12} color={THEME.textGray} />
+                                                <Text style={styles.eventTime}>
+                                                    {event.start_time?.substring(11, 16)} WIB
+                                                </Text>
+                                            </View>
+                                        </View>
+                                        <View style={styles.eventAction}>
+                                            <TouchableOpacity
+                                                style={{ marginRight: 12 }}
+                                                onPress={() =>
+                                                    router.push({
+                                                        pathname: "/edit-event",
+                                                        params: { event: JSON.stringify(event) },
+                                                    })
+                                                }
+                                            >
+                                                <Edit2 size={18} color="#2196F3" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                style={{ marginRight: 12 }}
+                                                onPress={() => promptDeleteEvent(event.id)}
+                                            >
+                                                <Trash2 size={18} color="#F44336" />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                onPress={() =>
+                                                    router.push({
+                                                        pathname: "/chatscreen",
+                                                        params: { attachedEvent: JSON.stringify(event) },
+                                                    })
+                                                }
+                                            >
+                                                <MessageCircle size={18} color={THEME.primary} />
+                                            </TouchableOpacity>
                                         </View>
                                     </View>
-                                    <View style={styles.eventAction}>
-                                        <TouchableOpacity
-                                            onPress={() =>
-                                                router.push({
-                                                    pathname: "/edit-event",
-                                                    params: { event: JSON.stringify(event) },
-                                                })
-                                            }
-                                        >
-                                            <Edit2 size={18} color="#2196F3" />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            onPress={() => promptDeleteEvent(event.id)}
-                                        >
-                                            <Trash2 size={18} color="#F44336" />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            onPress={() =>
-                                                router.push({
-                                                    pathname: "/chatscreen",
-                                                    params: { attachedEvent: JSON.stringify(event) },
-                                                })
-                                            }
-                                        >
-                                            <MessageCircle size={18} color={THEME.primary} />
-                                        </TouchableOpacity>
-                                    </View>
-                                </View>
-                            );
-                        })}
+                                );
+                            })
+                        )}
                     </ScrollView>
                 </View>
             </BlurView>
+
+            {/* 🔥 FIX 3: RENDER ELEMEN MODAL KONFIRMASI NYA BIAR GAK MUBAZIR STYLES-NYA */}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={isDeleteModalVisible}
+                onRequestClose={() => setDeleteModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalIconBg}>
+                            <AlertTriangle size={32} color="#F44336" />
+                        </View>
+                        <Text style={styles.modalTitle}>Hapus Jadwal?</Text>
+                        <Text style={styles.modalMessage}>
+                            Agenda kegiatan ini bakal dihapus permanen dari pangkalan Google Calendar lu, brok.
+                        </Text>
+                        <View style={styles.modalActionRow}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.modalButtonCancel]}
+                                onPress={() => setDeleteModalVisible(false)}
+                            >
+                                <Text style={styles.modalButtonTextCancel}>Batal</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.modalButtonDelete]}
+                                onPress={handleDeleteEvent}
+                            >
+                                <Text style={styles.modalButtonTextDelete}>Hapus</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -428,15 +509,14 @@ const styles = StyleSheet.create({
     },
     eventAction: { flexDirection: "row", alignItems: "center" },
     emptyContainer: {
-        flex: 0.7,
+        flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        paddingHorizontal: 40,
+        paddingVertical: 40,
     },
     emptyText: {
         color: THEME.textGray,
         fontSize: 14,
-        marginTop: 12,
         textAlign: "center",
         fontWeight: "500",
     },

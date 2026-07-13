@@ -14,19 +14,19 @@ import {
     Modal,
 } from "react-native";
 // ✅ Migrasi total ke komponen SVG murni Lucide Icons
-import { 
-    ChevronLeft, 
-    Type, 
-    Calendar, 
-    Clock, 
-    Info, 
-    Check, 
-    CheckCircle2, 
-    XCircle 
+import {
+    ChevronLeft,
+    Type,
+    Calendar,
+    Clock,
+    Info,
+    Check,
+    CheckCircle2,
+    XCircle,
 } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_URL } from "../../constants/Config";
+import { API_URL } from "../constants/Config";
 
 const THEME = {
     primary: "#E87A90",
@@ -274,10 +274,7 @@ export default function EditEventScreen() {
                         {/* INFO FOOTER BOX */}
                         <View style={styles.infoBox}>
                             {/* ✅ Ganti MaterialCommunityIcons name="information-outline" */}
-                            <Info
-                                size={16}
-                                color={THEME.textGray}
-                            />
+                            <Info size={16} color={THEME.textGray} />
                             <Text style={styles.infoText}>
                                 Format waktu wajib menggunakan standar database SQL lokal WIB
                                 (Tahun-Bulan-Tanggal Jam:Menit:Detik).
@@ -300,11 +297,7 @@ export default function EditEventScreen() {
                     ) : (
                         <>
                             {/* ✅ Ganti Feather name="check" */}
-                            <Check
-                                size={20}
-                                color="#FFF"
-                                style={{ marginRight: 8 }}
-                            />
+                            <Check size={20} color="#FFF" style={{ marginRight: 8 }} />
                             <Text style={styles.saveButtonText}>Simpan Perubahan</Text>
                         </>
                     )}
