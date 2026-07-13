@@ -73,7 +73,9 @@ export default function CalendarScreen() {
 
     const [currentMonthYear, setCurrentMonthYear] = useState("");
     const [isDeleteModalVisible, setDeleteModalVisible] = useState(false);
-    const [eventToDelete, setEventToDelete] = useState<string | number | null>(null);
+    const [eventToDelete, setEventToDelete] = useState<string | number | null>(
+        null,
+    );
 
     useEffect(() => {
         const generateDaysInMonth = (referenceDate: Date) => {
@@ -102,12 +104,22 @@ export default function CalendarScreen() {
         generateDaysInMonth(currentReferenceDate);
     }, [currentReferenceDate]);
 
+    // 🔥 FIX: Filtering Tanggal disamakan format YYYY-MM-DD
     useEffect(() => {
-        setFilteredEvents(
-            allEvents.filter((item) =>
-                item.start_time?.startsWith(selectedDateString),
-            ),
-        );
+        if (!allEvents || allEvents.length === 0) {
+            setFilteredEvents([]);
+            return;
+        }
+
+        const filtered = allEvents.filter((item) => {
+            if (!item.start_time) return false;
+            
+            // Ambil hanya 10 karakter pertama (YYYY-MM-DD)
+            const eventDate = item.start_time.substring(0, 10); 
+            return eventDate === selectedDateString;
+        });
+
+        setFilteredEvents(filtered);
     }, [selectedDateString, allEvents]);
 
     useFocusEffect(
@@ -139,21 +151,31 @@ export default function CalendarScreen() {
                 },
             });
             const json = await res.json();
-            if (json.status === "success") setAllEvents(json.data);
+            
+            // 🔥 DEBUGGING CONSOLE LOG: Intip struktur data asli backend lewat terminal
+            console.log("=== DEBUG DATA KALENDER ===");
+            console.log("Status API:", json.status);
+            console.log("Jumlah Data Total:", json.data ? json.data.length : 0);
+            if (json.data && json.data.length > 0) {
+                console.log("Contoh Item Pertama:", JSON.stringify(json.data[0], null, 2));
+            } else {
+                console.log("Data array kosong dari backend!");
+            }
+            console.log("===========================");
+
+            if (json.status === "success") setAllEvents(json.data || []);
         } catch (err) {
-            console.error(err);
+            console.error("Gagal Fetch Calendar:", err);
         } finally {
             setLoading(false);
         }
     };
 
-    // 🔥 FIX 1: BUAT FUNGSI TRIGGER MODAL DELETE NYA BIAR GAK EROR REFERENCE
     const promptDeleteEvent = (id: string | number) => {
         setEventToDelete(id);
         setDeleteModalVisible(true);
     };
 
-    // 🔥 FIX 2: BUAT FUNGSI EKSEKUSI API DELETE JADWAL KE BACKEND
     const handleDeleteEvent = async () => {
         if (!eventToDelete) return;
         try {
@@ -161,11 +183,10 @@ export default function CalendarScreen() {
                 Platform.OS === "web"
                     ? localStorage.getItem("user_token")
                     : await AsyncStorage.getItem("user_token");
-            
+
             if (!token) return;
 
-            // Tembak URL endpoint delete dengan membawa parameter ID lokal
-            const res = await fetch(`${API_URL.CALENDAR_EVENTS}/${eventToDelete}`, {
+            const res = await fetch(`${API_URL.CALENDAR_EVENT}?id=${eventToDelete}`, {
                 method: "DELETE",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -175,8 +196,9 @@ export default function CalendarScreen() {
 
             const json = await res.json();
             if (json.status === "success") {
-                // Refresh list data kalender di local state biar card-nya langsung hilang
                 setAllEvents((prev) => prev.filter((evt) => evt.id !== eventToDelete));
+            } else {
+                console.error("Gagal hapus di server:", json.message);
             }
         } catch (err) {
             console.error("Gagal mengeksekusi hapus jadwal:", err);
@@ -187,6 +209,7 @@ export default function CalendarScreen() {
     };
 
     const getEventIcon = (title: string) => {
+        if (!title) return { icon: <BookOpen size={20} color="#2196F3" />, bg: "#E3F2FD" };
         const t = title.toLowerCase();
         if (t.includes("rapat") || t.includes("meeting") || t.includes("kerja"))
             return {
@@ -217,7 +240,9 @@ export default function CalendarScreen() {
                         <TouchableOpacity
                             style={styles.iconButton}
                             onPress={() => {
-                                /* ...logic prev month */
+                                const newDate = new Date(currentReferenceDate);
+                                newDate.setMonth(newDate.getMonth() - 1);
+                                setCurrentReferenceDate(newDate);
                             }}
                         >
                             <ChevronLeft size={20} color={THEME.textDark} />
@@ -225,7 +250,9 @@ export default function CalendarScreen() {
                         <TouchableOpacity
                             style={styles.iconButton}
                             onPress={() => {
-                                /* ...logic next month */
+                                const newDate = new Date(currentReferenceDate);
+                                newDate.setMonth(newDate.getMonth() + 1);
+                                setCurrentReferenceDate(newDate);
                             }}
                         >
                             <ChevronRight size={20} color={THEME.textDark} />
@@ -283,17 +310,25 @@ export default function CalendarScreen() {
                     </View>
                     <ScrollView contentContainerStyle={styles.eventContainer}>
                         {loading ? (
-                            <ActivityIndicator size="small" color={THEME.primary} style={{ marginTop: 20 }} />
+                            <ActivityIndicator
+                                size="small"
+                                color={THEME.primary}
+                                style={{ marginTop: 20 }}
+                            />
                         ) : filteredEvents.length === 0 ? (
                             <View style={styles.emptyContainer}>
-                                <Text style={styles.emptyText}>Tidak ada agenda kegiatan hari ini, brok.</Text>
+                                <Text style={styles.emptyText}>
+                                    Tidak ada agenda kegiatan hari ini, brok.
+                                </Text>
                             </View>
                         ) : (
                             filteredEvents.map((event, idx) => {
                                 const meta = getEventIcon(event.title);
                                 return (
                                     <View key={idx} style={styles.eventCard}>
-                                        <View style={[styles.iconBox, { backgroundColor: meta.bg }]}>
+                                        <View
+                                            style={[styles.iconBox, { backgroundColor: meta.bg }]}
+                                        >
                                             {meta.icon}
                                         </View>
                                         <View style={styles.eventInfo}>
@@ -342,7 +377,7 @@ export default function CalendarScreen() {
                 </View>
             </BlurView>
 
-            {/* 🔥 FIX 3: RENDER ELEMEN MODAL KONFIRMASI NYA BIAR GAK MUBAZIR STYLES-NYA */}
+            {/* Modal Konfirmasi Delete */}
             <Modal
                 animationType="fade"
                 transparent={true}
@@ -356,7 +391,8 @@ export default function CalendarScreen() {
                         </View>
                         <Text style={styles.modalTitle}>Hapus Jadwal?</Text>
                         <Text style={styles.modalMessage}>
-                            Agenda kegiatan ini bakal dihapus permanen dari pangkalan Google Calendar lu, brok.
+                            Agenda kegiatan ini bakal dihapus permanen dari pangkalan Google
+                            Calendar lu, brok.
                         </Text>
                         <View style={styles.modalActionRow}>
                             <TouchableOpacity
@@ -439,15 +475,6 @@ const styles = StyleSheet.create({
     },
     dateText: { fontSize: 18, fontWeight: "700", color: THEME.textDark },
     textWhite: { color: THEME.surface },
-    activeDot: {
-        width: 4,
-        height: 4,
-        borderRadius: 2,
-        backgroundColor: THEME.surface,
-        marginTop: 6,
-        position: "absolute",
-        bottom: 12,
-    },
     eventsWrapper: {
         flex: 1,
         backgroundColor: THEME.surface,
