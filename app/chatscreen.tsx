@@ -61,11 +61,21 @@ interface MessageItem {
     } | null;
 }
 
-// 🔥 FIX: Helper function untuk validasi & parsing string datetime ISO8601 / standard SQL ke object Date
 const formatCardDateTime = (dateStr: any): Date | null => {
     if (!dateStr) return null;
-    const parsed = new Date(dateStr);
-    return isNaN(parsed.getTime()) ? null : parsed;
+    try {
+        // Normalisasi: Jika string mengandung spasi biasa (format SQL lokal), ubah paksa jadi format standar ISO 'T'
+        let sanitizedStr = String(dateStr).trim();
+        if (sanitizedStr.includes(" ") && !sanitizedStr.includes("T")) {
+            sanitizedStr = sanitizedStr.replace(" ", "T");
+        }
+
+        const parsed = new Date(sanitizedStr);
+        return isNaN(parsed.getTime()) ? null : parsed;
+    } catch (e) {
+        console.error("Gagal melakukan parsing tanggal di card:", e);
+        return null;
+    }
 };
 
 export default function ChatScreen() {
@@ -142,13 +152,12 @@ export default function ChatScreen() {
         setInputText("");
         setSendLoading(true);
 
-        // 🚀 AMANKAN REFERENSI: Ambil data lampiran yang ada sekarang
         const currentAttachment = attachedEvent;
 
-        // Normalisasi format payload murni dari referensi yang aman
+        // 🔥 FIX PAYLOAD INTEGRITAS: Jaga mapping key agar sinkron murni antara `id` lokal vs google_id bawaan list kalender
         const eventPayload = currentAttachment
             ? {
-                id: currentAttachment.id, // ID aman ikut terkirim ke backend
+                id: currentAttachment.id || currentAttachment.google_event_id,
                 title: currentAttachment.title,
                 start: currentAttachment.start_time || currentAttachment.start,
                 end: currentAttachment.end_time || currentAttachment.end,
@@ -184,7 +193,7 @@ export default function ChatScreen() {
                 }),
             });
 
-            // 🚀 STATE CLEARING: Setelah fetch sukses menembak, baru bersihkan attachment preview di input bar
+            // 🚀 STATE CLEARING CHECKPOINT: Dipindah ke hilir fetch agar data objek penunjang di atas gak keburu hangus!
             setAttachedEvent(null);
             router.setParams({ attachedEvent: undefined });
 
@@ -201,13 +210,14 @@ export default function ChatScreen() {
             }
 
             if (response.ok && json.status === "success") {
+                // Frontend pinter menyeleksi letak array payload mentah yang dioper dari backend lu
                 const updatedEventData = json.data?.event || json.event || eventPayload;
 
                 const aiMessage: MessageItem = {
                     role: "assistant",
                     content: json.message || `Berhasil memproses jadwal lu, brok! ✅`,
                     created_at: new Date().toISOString(),
-                    event_data: updatedEventData,
+                    event_data: updatedEventData, // Otomatis nempel dapet card sukses
                 };
                 setMessages((prev) => [...prev, aiMessage]);
             } else if (
@@ -221,7 +231,7 @@ export default function ChatScreen() {
                         json.message ||
                         `Waduh brok, jadwalnya bentrok nih sama agenda lain. Coba cek lagi deh! 🛑`,
                     created_at: new Date().toISOString(),
-                    event_data: null,
+                    event_data: null, // Gak dapet card karena statusnya gagal/clash
                 };
                 setMessages((prev) => [...prev, aiClashMessage]);
             } else {
@@ -330,7 +340,7 @@ export default function ChatScreen() {
                                 <View style={isUser ? styles.userBubble : styles.aiBubble}>
                                     <Text style={styles.messageText}>{msg.content}</Text>
 
-                                    {/* 📅 DIGITAL CARD ATTACHMENT */}
+                                    {/* 📅 SELEKSI KARTU DIGITAL: Hanya dirender jika payload event_data murni lolos seleksi dari backend */}
                                     {msg.event_data && (
                                         <View
                                             style={[
@@ -347,7 +357,8 @@ export default function ChatScreen() {
                                                         {msg.event_data.title}
                                                     </Text>
                                                     <Text style={styles.scheduleTime}>
-                                                        {parsedDate instanceof Date
+                                                        {parsedDate instanceof Date &&
+                                                            !isNaN(parsedDate.getTime())
                                                             ? parsedDate.toLocaleDateString("id-ID", {
                                                                 weekday: "long",
                                                                 day: "numeric",
