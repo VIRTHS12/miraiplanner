@@ -12,7 +12,6 @@ import {
     Platform,
     ActivityIndicator,
 } from "react-native";
-// ✅ Migrasi total ke murni SVG Lucide Icons
 import {
     Calendar as LucideCalendar,
     Clock,
@@ -20,7 +19,6 @@ import {
     Flower,
     MoreHorizontal,
     Briefcase,
-    Check,
     CheckCheck,
     Paperclip,
     XCircle,
@@ -41,7 +39,6 @@ const THEME = {
     border: "#F0F0F0",
 };
 
-// Map untuk render icon quick action secara dinamis tanpa strings error
 const QUICK_ACTION_ICONS: Record<string, React.ComponentType<any>> = {
     calendar: LucideCalendar,
     clock: Clock,
@@ -70,19 +67,20 @@ export default function ChatScreen() {
     const [historyLoading, setHistoryLoading] = useState(true);
     const [sendLoading, setSendLoading] = useState(false);
 
-    // 🔥 STATE UNTUK ATTACHMENT JADWAL
+    // STATE UNTUK ATTACHMENT JADWAL
     const [attachedEvent, setAttachedEvent] = useState<any>(null);
 
     const scrollViewRef = useRef<ScrollView>(null);
 
-    // Cek apakah ada lemparan event dari screen kalender
+    // Mengambil attachedEvent dari parameter navigasi expo-router
     useEffect(() => {
         if (params.attachedEvent) {
             try {
                 const parsed = JSON.parse(params.attachedEvent as string);
                 setAttachedEvent(parsed);
-                // Trigger auto placeholder pesan biar user tinggal kirim
-                setInputText(`Brok, coba tolong review jadwal "${parsed.title}" ini.`);
+                setInputText(
+                    `Brok, coba tolong review/update jadwal "${parsed.title}" ini.`,
+                );
             } catch (e) {
                 console.error("Gagal parse attached event", e);
             }
@@ -136,27 +134,33 @@ export default function ChatScreen() {
         setInputText("");
         setSendLoading(true);
 
+        // 🚀 1. AMANKAN REFERENSI: Ambil data lampiran yang ada sekarang
         const currentAttachment = attachedEvent;
-        setAttachedEvent(null);
-        router.setParams({ attachedEvent: undefined });
 
+        // Normalisasi format payload murni dari referensi yang aman
         const eventPayload = currentAttachment
             ? {
+                id: currentAttachment.id, // 👈 WAJIB DITAMBAHKAN!
                 title: currentAttachment.title,
-                start: currentAttachment.start_time,
-                end: currentAttachment.end_time,
+                start: currentAttachment.start_time || currentAttachment.start,
+                end: currentAttachment.end_time || currentAttachment.end,
             }
             : null;
 
+        // Tampilkan pesan User ke dalam bubble chat beserta Card Attachment-nya
         const userTempMessage: MessageItem = {
             role: "user",
-            content: msgClean || `[Mengirim Lampiran Jadwal: ${currentAttachment?.title}]`,
+            content:
+                msgClean || `[Mengirim Lampiran Jadwal: ${currentAttachment?.title}]`,
             created_at: new Date().toISOString(),
             event_data: eventPayload,
         };
 
         setMessages((prev) => [...prev, userTempMessage]);
-        setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
+        setTimeout(
+            () => scrollViewRef.current?.scrollToEnd({ animated: true }),
+            100,
+        );
 
         try {
             const token = await AsyncStorage.getItem("user_token");
@@ -168,41 +172,51 @@ export default function ChatScreen() {
                 },
                 body: JSON.stringify({
                     message: msgClean,
-                    attached_event: eventPayload,
+                    attached_event: eventPayload, // Di sini payload dijamin 100% aman terkirim
                 }),
             });
 
-            // Baca respon sebagai teks mentah dulu buat nangkep error PHP dump (kalau ada)
+            // 🚀 2. STATE CLEARING: Setelah fetch sukses menembak, baru bersihkan attachment preview di input bar
+            setAttachedEvent(null);
+            router.setParams({ attachedEvent: undefined });
+
             const responseText = await response.text();
             let json: any = {};
 
             try {
                 json = JSON.parse(responseText);
             } catch (e) {
-                // Kalau parsing JSON gagal (artinya PHP melempar crash HTML/Fatal Error)
-                throw new Error(responseText.substring(0, 150) || "Server PHP crash tanpa respon JSON.");
+                throw new Error(
+                    responseText.substring(0, 150) ||
+                    "Server PHP crash tanpa respon JSON.",
+                );
             }
 
             if (response.ok && json.status === "success") {
-                // 🔥 CASE 1: Sukses total
+                const updatedEventData = json.data?.event || json.event || eventPayload;
+
                 const aiMessage: MessageItem = {
                     role: "assistant",
                     content: json.message || `Berhasil memproses jadwal lu, brok! ✅`,
                     created_at: new Date().toISOString(),
-                    event_data: json.data?.event || null,
+                    event_data: updatedEventData,
                 };
                 setMessages((prev) => [...prev, aiMessage]);
-            } else if (response.status === 409 || json.status === "clash" || json.message?.includes("bentrok")) {
-                // 🔥 CASE 2: Jadwal Bentrok
+            } else if (
+                response.status === 409 ||
+                json.status === "clash" ||
+                json.message?.includes("bentrok")
+            ) {
                 const aiClashMessage: MessageItem = {
                     role: "assistant",
-                    content: json.message || `Waduh brok, jadwalnya bentrok nih sama agenda lain. Coba cek lagi deh! 🛑`,
+                    content:
+                        json.message ||
+                        `Waduh brok, jadwalnya bentrok nih sama agenda lain. Coba cek lagi deh! 🛑`,
                     created_at: new Date().toISOString(),
                     event_data: null,
                 };
                 setMessages((prev) => [...prev, aiClashMessage]);
             } else {
-                // 🔥 CASE 3: Respon Error normal dari Backend PHP
                 const aiErrorMessage: MessageItem = {
                     role: "assistant",
                     content: `⚠️ Gagal memproses: ${json.message || "Terjadi kesalahan pada pangkalan internal backend."}`,
@@ -212,7 +226,6 @@ export default function ChatScreen() {
                 setMessages((prev) => [...prev, aiErrorMessage]);
             }
         } catch (err: any) {
-            // 🔥 CASE 4: Jaringan putus / Fatal PHP Crash (DITAMPILKAN DI CHAT BUBBLE - NO POP-UP ALERT)
             console.error("Fetch Error caught:", err);
             const networkErrorMessage: MessageItem = {
                 role: "assistant",
@@ -223,9 +236,13 @@ export default function ChatScreen() {
             setMessages((prev) => [...prev, networkErrorMessage]);
         } finally {
             setSendLoading(false);
-            setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 150);
+            setTimeout(
+                () => scrollViewRef.current?.scrollToEnd({ animated: true }),
+                150,
+            );
         }
     };
+
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor={THEME.surface} />
@@ -237,20 +254,17 @@ export default function ChatScreen() {
                     activeOpacity={0.7}
                     onPress={() => router.replace("/")}
                 >
-                    {/* ✅ Ganti Feather name="chevron-left" */}
                     <ChevronLeft size={24} color={THEME.textDark} />
                 </TouchableOpacity>
 
                 <View style={styles.headerTitleContainer}>
                     <Text style={styles.headerTitle}>
-                        Mirai Planner {/* ✅ Ganti MaterialCommunityIcons name="flower" */}
-                        <Flower size={16} color={THEME.primary} />
+                        Mirai Planner <Flower size={16} color={THEME.primary} />
                     </Text>
                     <Text style={styles.headerSubtitle}>AI Assistant</Text>
                 </View>
 
                 <TouchableOpacity style={styles.headerIcon} activeOpacity={0.7}>
-                    {/* ✅ Ganti Feather name="more-horizontal" */}
                     <MoreHorizontal size={24} color={THEME.textDark} />
                 </TouchableOpacity>
             </View>
@@ -288,6 +302,10 @@ export default function ChatScreen() {
                             })
                             : "";
 
+                        const parsedDate = msg.event_data
+                            ? formatCardDateTime(msg.event_data.start)
+                            : null;
+
                         return (
                             <View
                                 key={index}
@@ -297,7 +315,6 @@ export default function ChatScreen() {
                             >
                                 {!isUser && (
                                     <View style={styles.aiAvatar}>
-                                        {/* ✅ Ganti MaterialCommunityIcons flower avatar */}
                                         <Flower size={18} color={THEME.surface} />
                                     </View>
                                 )}
@@ -315,7 +332,6 @@ export default function ChatScreen() {
                                         >
                                             <View style={styles.scheduleCardHeader}>
                                                 <View style={styles.iconBox}>
-                                                    {/* ✅ Ganti Feather name="briefcase" */}
                                                     <Briefcase size={18} color={THEME.primary} />
                                                 </View>
                                                 <View style={styles.scheduleInfo}>
@@ -323,10 +339,9 @@ export default function ChatScreen() {
                                                         {msg.event_data.title}
                                                     </Text>
                                                     <Text style={styles.scheduleTime}>
-                                                        {msg.event_data.start
-                                                            ? new Date(
-                                                                msg.event_data.start.replace(" ", "T"),
-                                                            ).toLocaleDateString("id-ID", {
+                                                        {parsedDate instanceof Date &&
+                                                            !isNaN(parsedDate.getTime())
+                                                            ? parsedDate.toLocaleDateString("id-ID", {
                                                                 weekday: "long",
                                                                 day: "numeric",
                                                                 month: "long",
@@ -337,8 +352,8 @@ export default function ChatScreen() {
                                                     <Text style={styles.scheduleTime}>
                                                         {msg.event_data.start
                                                             ? msg.event_data.start.substring(11, 16)
-                                                            : "00:00"}{" "}
-                                                        -{" "}
+                                                            : "00:00"}
+                                                        {" - "}
                                                         {msg.event_data.end
                                                             ? msg.event_data.end.substring(11, 16)
                                                             : "00:00"}{" "}
@@ -347,7 +362,6 @@ export default function ChatScreen() {
                                                 </View>
                                             </View>
                                             <View style={styles.sourceTag}>
-                                                {/* ✅ Ganti MaterialCommunityIcons name="google" -> Menggunakan text atau ikon kalender kecil */}
                                                 <LucideCalendar size={14} color="#DB4437" />
                                                 <Text style={styles.sourceText}>Attached Agenda</Text>
                                             </View>
@@ -395,14 +409,17 @@ export default function ChatScreen() {
                 {attachedEvent && (
                     <View style={styles.attachmentPreviewContainer}>
                         <View style={styles.attachmentPreviewCard}>
-                            {/* ✅ Ganti MaterialCommunityIcons name="paperclip" */}
                             <Paperclip size={20} color={THEME.primary} />
                             <View style={{ flex: 1, marginLeft: 8 }}>
                                 <Text style={styles.attachmentPreviewTitle} numberOfLines={1}>
                                     Lampiran: {attachedEvent.title}
                                 </Text>
                                 <Text style={styles.attachmentPreviewSub}>
-                                    {attachedEvent.start_time?.substring(0, 16)} WIB
+                                    {(attachedEvent.start_time || attachedEvent.start)?.substring(
+                                        0,
+                                        16,
+                                    )}{" "}
+                                    WIB
                                 </Text>
                             </View>
                             <TouchableOpacity
@@ -412,7 +429,6 @@ export default function ChatScreen() {
                                 }}
                                 style={{ padding: 4 }}
                             >
-                                {/* ✅ Ganti Feather name="x-circle" */}
                                 <XCircle size={18} color={THEME.textGray} />
                             </TouchableOpacity>
                         </View>
@@ -432,7 +448,7 @@ export default function ChatScreen() {
                             value={inputText}
                             onChangeText={setInputText}
                             multiline
-                            disabled={sendLoading}
+                            editable={!sendLoading}
                         />
                         <TouchableOpacity
                             style={[
@@ -444,7 +460,6 @@ export default function ChatScreen() {
                             onPress={() => handleSendMessage(inputText)}
                             disabled={(!inputText.trim() && !attachedEvent) || sendLoading}
                         >
-                            {/* ✅ Ganti MaterialCommunityIcons name="send" */}
                             <Send size={18} color={THEME.surface} style={styles.sendIcon} />
                         </TouchableOpacity>
                     </View>
@@ -455,7 +470,6 @@ export default function ChatScreen() {
                         contentContainerStyle={styles.chipsContainer}
                     >
                         {QUICK_ACTIONS.map((action) => {
-                            // Ambil komponen icon murni berdasarkan key-nya
                             const ActionIcon = QUICK_ACTION_ICONS[action.icon] || Clock;
                             return (
                                 <TouchableOpacity
@@ -467,7 +481,6 @@ export default function ChatScreen() {
                                     }
                                     disabled={sendLoading}
                                 >
-                                    {/* ✅ Render Icon murni secara dinamis */}
                                     <ActionIcon size={14} color={THEME.primary} />
                                     <Text style={styles.chipText}>{action.label}</Text>
                                 </TouchableOpacity>
@@ -480,6 +493,7 @@ export default function ChatScreen() {
     );
 }
 
+// ... Gaya desain (StyleSheet) tetap dipertahankan seperti kode awal Anda ...
 const shadows = {
     soft: {
         shadowColor: "#000",
@@ -725,9 +739,5 @@ const styles = StyleSheet.create({
         fontWeight: "700",
         color: THEME.textDark,
     },
-    attachmentPreviewSub: {
-        fontSize: 12,
-        color: THEME.textGray,
-        marginTop: 2,
-    },
+    attachmentPreviewSub: { fontSize: 12, color: THEME.textGray, marginTop: 2 },
 });
