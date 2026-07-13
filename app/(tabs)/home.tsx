@@ -13,17 +13,17 @@ import {
     useWindowDimensions,
 } from "react-native";
 // ✅ Menggunakan komponen murni SVG Lucide Icons secara menyeluruh
-import { 
-    LogOut, 
-    Calendar, 
-    Clock, 
-    Flower, 
-    ChevronRight, 
-    Briefcase, 
-    Activity, 
+import {
+    LogOut,
+    Calendar,
+    Clock,
+    Flower,
+    ChevronRight,
+    Briefcase,
+    Activity,
     BookOpen,
     CheckCircle,
-    BarChart3
+    BarChart3,
 } from "lucide-react-native";
 import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
@@ -105,24 +105,46 @@ export default function HomeScreen() {
 
             if (jsonEvents.status === "success" && Array.isArray(jsonEvents.data)) {
                 const now = new Date();
-                const todayFormatted = now.toISOString().split("T")[0];
-                const currentMonthPrefix = todayFormatted.substring(0, 7);
 
-                // 1. Filter untuk Jadwal Hari Ini
-                const todaysEvents = jsonEvents.data.filter((item: any) =>
-                    item.start_time?.startsWith(todayFormatted),
-                );
+                // ✅ Mengambil komponen tanggal lokal user (WIB), bukan UTC/ISO string
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, "0");
+                const day = String(now.getDate()).padStart(2, "0");
+
+                // Bikin 2 alternatif prefix untuk jaga-jaga format backend pakai strip atau garis miring
+                const todayDash = `${year}-${month}-${day}`; // 2026-07-14
+                const todaySlash = `${year}/${month}/${day}`; // 2026/07/14
+
+                const monthDash = `${year}-${month}`; // 2026-07
+                const monthSlash = `${year}/${month}`; // 2026/07
+
+                // 1. Filter untuk Jadwal Hari Ini (Mendukung format - dan /)
+                const todaysEvents = jsonEvents.data.filter((item: any) => {
+                    if (!item.start_time) return false;
+                    return (
+                        item.start_time.startsWith(todayDash) ||
+                        item.start_time.startsWith(todaySlash)
+                    );
+                });
                 setEvents(todaysEvents);
 
-                // 2. Filter data khusus untuk bulan ini saja sebelum menghitung summary
-                const monthlyEvents = jsonEvents.data.filter((item: any) =>
-                    item.start_time?.startsWith(currentMonthPrefix),
-                );
+                // 2. Filter data khusus untuk bulan ini saja (Mendukung format - dan /)
+                const monthlyEvents = jsonEvents.data.filter((item: any) => {
+                    if (!item.start_time) return false;
+                    return (
+                        item.start_time.startsWith(monthDash) ||
+                        item.start_time.startsWith(monthSlash)
+                    );
+                });
 
                 const total = monthlyEvents.length;
                 const selesai = monthlyEvents.filter((item: any) => {
                     if (!item.end_time) return false;
-                    return new Date(item.end_time.replace(" ", "T")) < now;
+                    // Normalisasi format / ke - agar constructor New Date() javascript tidak crash di platform tertentu
+                    const normalizedEnd = item.end_time
+                        .replace(/\//g, "-")
+                        .replace(" ", "T");
+                    return new Date(normalizedEnd) < now;
                 }).length;
 
                 setWeeklyStats({ total, aktif: total - selesai, selesai });
