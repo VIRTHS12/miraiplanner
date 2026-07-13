@@ -54,11 +54,19 @@ interface MessageItem {
     content: string;
     created_at?: string;
     event_data?: {
+        id?: string | number;
         title: string;
         start: string;
         end: string;
     } | null;
 }
+
+// 🔥 FIX: Helper function untuk validasi & parsing string datetime ISO8601 / standard SQL ke object Date
+const formatCardDateTime = (dateStr: any): Date | null => {
+    if (!dateStr) return null;
+    const parsed = new Date(dateStr);
+    return isNaN(parsed.getTime()) ? null : parsed;
+};
 
 export default function ChatScreen() {
     const params = useLocalSearchParams();
@@ -134,13 +142,13 @@ export default function ChatScreen() {
         setInputText("");
         setSendLoading(true);
 
-        // 🚀 1. AMANKAN REFERENSI: Ambil data lampiran yang ada sekarang
+        // 🚀 AMANKAN REFERENSI: Ambil data lampiran yang ada sekarang
         const currentAttachment = attachedEvent;
 
         // Normalisasi format payload murni dari referensi yang aman
         const eventPayload = currentAttachment
             ? {
-                id: currentAttachment.id, // 👈 WAJIB DITAMBAHKAN!
+                id: currentAttachment.id, // ID aman ikut terkirim ke backend
                 title: currentAttachment.title,
                 start: currentAttachment.start_time || currentAttachment.start,
                 end: currentAttachment.end_time || currentAttachment.end,
@@ -172,11 +180,11 @@ export default function ChatScreen() {
                 },
                 body: JSON.stringify({
                     message: msgClean,
-                    attached_event: eventPayload, // Di sini payload dijamin 100% aman terkirim
+                    attached_event: eventPayload,
                 }),
             });
 
-            // 🚀 2. STATE CLEARING: Setelah fetch sukses menembak, baru bersihkan attachment preview di input bar
+            // 🚀 STATE CLEARING: Setelah fetch sukses menembak, baru bersihkan attachment preview di input bar
             setAttachedEvent(null);
             router.setParams({ attachedEvent: undefined });
 
@@ -339,8 +347,7 @@ export default function ChatScreen() {
                                                         {msg.event_data.title}
                                                     </Text>
                                                     <Text style={styles.scheduleTime}>
-                                                        {parsedDate instanceof Date &&
-                                                            !isNaN(parsedDate.getTime())
+                                                        {parsedDate instanceof Date
                                                             ? parsedDate.toLocaleDateString("id-ID", {
                                                                 weekday: "long",
                                                                 day: "numeric",
@@ -493,7 +500,6 @@ export default function ChatScreen() {
     );
 }
 
-// ... Gaya desain (StyleSheet) tetap dipertahankan seperti kode awal Anda ...
 const shadows = {
     soft: {
         shadowColor: "#000",
