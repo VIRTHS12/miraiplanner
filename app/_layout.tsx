@@ -47,6 +47,7 @@ export default function RootLayout() {
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 <Stack.Screen name="login" options={{ headerShown: false }} />
                 <Stack.Screen name="chatscreen" options={{ headerShown: false }} />
+                <Stack.Screen name="edit-event" options={{ headerShown: false }} />
                 <Stack.Screen name="modal" options={{ presentation: "modal" }} />
             </Stack>
             <StatusBar style="auto" />
